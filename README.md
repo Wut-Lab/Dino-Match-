@@ -6,14 +6,14 @@ A picture of a dinosaur shows up on the left, and 6–8 dinosaurs wander around 
 
 ## Features
 
-- 8 hand-drawn SVG dinos: T-Rex, Triceratops, Stegosaurus, Brontosaurus, Pterodactyl, Ankylosaurus, Parasaurolophus and Spinosaurus
-- Walk cycles, blinking eyes, a flapping Pterodactyl, sparkles and confetti
+- 8 chubby cartoon dinos, each in its own colour: T-Rex, Triceratops, Stegosaurus, Brontosaurus, Pterodactyl, Ankylosaurus, Parasaurolophus and Spinosaurus. The art is public domain (CC0) from Openclipart; see [`art/README.md`](art/README.md)
+- Waddling dinos, a hovering Pterodactyl, sparkles and confetti
 - The dino's name is read aloud ("Find the T-Rex!") for kids who can't read yet. Tap the picture card to hear it again
 - Built to be gentle: a wrong tap gets a little wiggle, with no penalty. After 2 misses, or 9 seconds without finding the dino, a star appears over it as a hint
 - Works with mouse and touch, in landscape and portrait (phones, tablets, desktops)
 - Progress is saved in the browser (`localStorage`)
 - A sound on/off toggle, and the setting is remembered
-- No build step, no dependencies, no image or audio files
+- No build step to play, no dependencies, no audio files
 
 ## Play locally
 
@@ -37,18 +37,22 @@ python3 -m http.server 8080
 ```
 index.html        Screens: main menu, game, win overlay
 css/style.css     All styling and animations
-js/dinos.js       Dino roster: names, colours and SVG drawings
+js/dinos.js       Dino roster: names and how each drawing is framed
+js/dino-art.js    Generated dino drawings (don't edit by hand)
 js/scenes.js      Locations/backgrounds (currently: Sunny Meadow)
 js/storage.js     Save data (games won, dinos found, settings)
 js/sound.js       Synth sound effects and spoken prompts
 js/game.js        Core gameplay loop: wandering, tapping, hints
 js/main.js        App shell: menu, screen switching, win screen
 assets/           Favicon
+art/source/       Original Openclipart SVGs (CC0)
+tools/build-art.py  Recolours/remixes art/source into js/dino-art.js
 ```
 
 ## Extending it
 
-- **New dino:** add an entry to `DINOS` in `js/dinos.js`. Give it an `id`, a `name`, `colors` and a `draw()` that returns SVG for a 200×160 view box, facing right. Shapes with class `leg-a`/`leg-b` swing when it walks. Set `flies: true` with `wing-l`/`wing-r` shapes for a flier.
+- **New dino:** put the SVG in `art/source/`, add an entry to `DINOS` in `tools/build-art.py` (colours to swap, parts to add or remove), run `python3 tools/build-art.py`, then add the same `id` and a `name` to `js/dinos.js`. Set `flies: true` for a flier.
+- **Recolour a dino:** change its `colors` in `tools/build-art.py` and rebuild.
 - **New location:** add an entry to `LOCATIONS` in `js/scenes.js` and give it CSS under `.scene-<id>`.
 - **Unlocks & collectibles:** `js/storage.js` already tracks `gamesCompleted` and `dinosFound`. Add new fields to `defaults()` and existing saves will pick them up automatically.
 - **Tuning:** constants at the top of `js/game.js` control round size, hint timing and walking speed.

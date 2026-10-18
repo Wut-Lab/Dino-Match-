@@ -71,7 +71,23 @@
       this.exitX = this.x < b.W / 2 ? -size.w * 1.2 : b.W + size.w * 1.2;
     }
 
-    update(dt, b, size) {
+    // Try a few random spots and head for the one with the most elbow room,
+    // so dinos spread out instead of piling up (easier to tap).
+    pickTarget(b, others) {
+      let best = -1;
+      for (let i = 0; i < 8; i++) {
+        const x = rand(b.minX, b.maxX);
+        const y = rand(b.minY, b.maxY);
+        let room = Infinity;
+        for (const o of others) {
+          if (o === this || o.leaving) continue;
+          room = Math.min(room, Math.hypot(o.x - x, (o.y - y) * 1.6), Math.hypot(o.tx - x, (o.ty - y) * 1.6));
+        }
+        if (room > best) { best = room; this.tx = x; this.ty = y; }
+      }
+    }
+
+    update(dt, b, size, others) {
       if (this.leaving) {
         if (this.cheer > 0) {
           this.cheer -= dt;
@@ -84,8 +100,7 @@
       } else if (!this.moving) {
         this.wait -= dt;
         if (this.wait <= 0) {
-          this.tx = rand(b.minX, b.maxX);
-          this.ty = rand(b.minY, b.maxY);
+          this.pickTarget(b, others);
           this.moving = true;
         }
       }
@@ -143,8 +158,8 @@
     measure() {
       const W = this.field.clientWidth;
       const H = this.field.clientHeight;
-      const w = clamp(Math.min(W / 4.2, H / 2.6), 64, 200);
-      const h = w * 0.8;
+      const w = clamp(Math.min(W / 4.4, H / 3), 64, 190);
+      const h = w;
       this.size = { w, h };
       this.field.style.setProperty('--dino-w', `${w}px`);
       const minY = Math.min(H * this.location.horizon + h * 0.55, H - 6);
@@ -219,7 +234,7 @@
       const dt = Math.min(0.05, (now - this.last) / 1000);
       this.last = now;
 
-      for (const a of this.actors) a.update(dt, this.bounds, this.size);
+      for (const a of this.actors) a.update(dt, this.bounds, this.size, this.actors);
       this.separate();
       for (const a of this.actors) a.render(this.size);
 
@@ -282,7 +297,7 @@
       void this.card.offsetWidth;
       this.label.textContent = label;
       if (dino) {
-        this.pic.innerHTML = DM.dinoSVG(dino);
+        this.pic.innerHTML = DM.dinoSVG(dino, { fit: true });
         this.nameEl.textContent = dino.name;
         this.card.classList.add('pop-in');
       } else {
