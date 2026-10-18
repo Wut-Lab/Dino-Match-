@@ -21,6 +21,7 @@
       <div class="menu-center">
         <h1 class="logo" id="logo" aria-label="Dino-Match">Dino-Match</h1>
         <button id="btn-play" class="btn btn-play">Play!</button>
+        <button id="btn-collections" class="btn btn-collections">Collections</button>
         <div class="badge" id="games-badge">
           <span class="badge-icon" aria-hidden="true">🏆</span>
           <span>Games won</span>
@@ -29,6 +30,16 @@
         <button id="btn-credits" class="btn btn-small btn-credits">Credits</button>
       </div>
       <div class="parade" id="parade" aria-hidden="true"></div>
+
+      <div id="collections" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="coll-title">
+        <div class="credits-card coll-card">
+          <button id="btn-coll-close" class="icon-btn credits-close" aria-label="Close collections">✕</button>
+          <h2 id="coll-title">Collections</h2>
+          <div id="coll-tabs" class="coll-tabs" role="tablist" aria-label="Collections"></div>
+          <div id="coll-panel" class="coll-panel" role="tabpanel"></div>
+          <button id="btn-coll-back" class="btn btn-play credits-back">Back</button>
+        </div>
+      </div>
 
       <div id="credits" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="credits-title">
         <div class="credits-card">
@@ -123,6 +134,7 @@
   <script src="js/sound.js"></script>
   <script src="js/game.js"></script>
   <script src="js/dadlock.js"></script>
+  <script src="js/collections.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

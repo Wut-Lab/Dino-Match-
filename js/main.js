@@ -115,7 +115,7 @@
 
   function showCredits(on) {
     $('credits').classList.toggle('hidden', !on);
-    document.body.classList.toggle('credits-open', on);
+    document.body.classList.toggle('panel-open', on);
     if (on) $('btn-credits-close').focus();
   }
   $('credits').addEventListener('click', (e) => { if (e.target.id === 'credits') showCredits(false); });
@@ -147,6 +147,7 @@
   });
 
   DM.DadLock.init(save);
+  DM.Collections.init(save);
 
   // Expose for debugging / future features.
   DM.app = { game, save, startGame, goMenu };

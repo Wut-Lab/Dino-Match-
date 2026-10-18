@@ -18,6 +18,7 @@ A picture of a dinosaur shows up on the left, and 6–8 dinosaurs wander around 
 - Progress is saved in the browser (`localStorage`)
 - A sound on/off toggle, and the setting is remembered
 - Full screen with an optional **Dad Lock**: a grown-up PIN is needed to leave full screen. Browsers always allow leaving full screen (Esc, swipes), so if that happens while locked, a lock screen covers the game until the PIN is entered. Kids can only tap "Back to full screen". Forgot the PIN? Answer a grown-up multiplication question to reset it. Not available on iPhone, where Safari doesn't support full screen for web pages
+- A Collections screen on the main menu with three tabs (placeholders for now; fill them in via `js/collections.js`)
 - A Credits screen on the main menu naming each dino's artist (credits live next to each dino in `js/dinos.js`)
 - No build step to play, no dependencies, no audio files
 
@@ -50,6 +51,7 @@ js/storage.js     Save data (games won, dinos found, settings)
 js/sound.js       Synth sound effects and spoken prompts
 js/game.js        Core gameplay loop: wandering, tapping, hints
 js/dadlock.js     Full screen button, Dad Lock PIN keypad and lock screen
+js/collections.js Collections pop-up and its tabs
 js/main.js        App shell: menu, screen switching, win screen
 assets/           Favicon
 art/source/       Original Openclipart SVGs (CC0)
