@@ -7,6 +7,10 @@ A picture of a dinosaur shows up on the left, and 6–8 dinosaurs wander around 
 ## Features
 
 - 8 chubby cartoon dinos, each in its own colour: T-Rex, Triceratops, Stegosaurus, Brontosaurus, Pterodactyl, Ankylosaurus, Parasaurolophus and Spinosaurus. The art is public domain (CC0) from Openclipart; see [`art/README.md`](art/README.md)
+- Three locations, picked at random each round:
+  - **Sunny Meadow**
+  - **Pine Forest**: dinos can walk behind the trees, but never stop where they're hidden
+  - **Volcano Valley**: now and then a fog bank rolls across, partly hiding the dinos
 - Waddling dinos, a hovering Pterodactyl, sparkles and confetti
 - The dino's name is read aloud ("Find the T-Rex!") for kids who can't read yet. Tap the picture card to hear it again
 - Built to be gentle: a wrong tap gets a little wiggle, with no penalty. After 2 misses, or 9 seconds without finding the dino, a star appears over it as a hint
@@ -41,7 +45,7 @@ index.html        Screens: main menu, game, win overlay
 css/style.css     All styling and animations
 js/dinos.js       Dino roster: names and how each drawing is framed
 js/dino-art.js    Generated dino drawings (don't edit by hand)
-js/scenes.js      Locations/backgrounds (currently: Sunny Meadow)
+js/scenes.js      Locations: Sunny Meadow, Pine Forest, Volcano Valley
 js/storage.js     Save data (games won, dinos found, settings)
 js/sound.js       Synth sound effects and spoken prompts
 js/game.js        Core gameplay loop: wandering, tapping, hints
@@ -56,13 +60,13 @@ tools/build-art.py  Recolours/remixes art/source into js/dino-art.js
 
 - **New dino:** put the SVG in `art/source/`, add an entry to `DINOS` in `tools/build-art.py` (colours to swap, parts to add or remove), run `python3 tools/build-art.py`, then add the same `id` and a `name` to `js/dinos.js`. Set `flies: true` for a flier.
 - **Recolour a dino:** change its `colors` in `tools/build-art.py` and rebuild.
-- **New location:** add an entry to `LOCATIONS` in `js/scenes.js` and give it CSS under `.scene-<id>`.
+- **New location:** add an entry to `LOCATIONS` in `js/scenes.js` and give it CSS under `.scene-<id>`. Add `trees` for pines the dinos walk behind, or `fog` for rolling fog banks.
 - **Unlocks & collectibles:** `js/storage.js` already tracks `gamesCompleted` and `dinosFound`. Add new fields to `defaults()` and existing saves will pick them up automatically.
 - **Tuning:** constants at the top of `js/game.js` control round size, hint timing and walking speed.
 
 ## Roadmap ideas
 
-- Unlockable dinos and locations (beach, volcano, snowy mountains)
+- Unlockable dinos and more locations (beach, snowy mountains)
 - Collectible stickers or eggs
 - Colour variants (find the *blue* T-Rex)
 - Difficulty levels for older kids

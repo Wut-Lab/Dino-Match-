@@ -27,6 +27,7 @@
   class Actor {
     constructor(dino, game) {
       this.dino = dino;
+      this.game = game;
       this.x = 0;
       this.y = 0;
       this.tx = 0;
@@ -72,12 +73,15 @@
     }
 
     // Try a few random spots and head for the one with the most elbow room,
-    // so dinos spread out instead of piling up (easier to tap).
+    // so dinos spread out instead of piling up (easier to tap). Spots hidden
+    // behind trees are skipped: dinos may walk behind a tree but not stop there.
     pickTarget(b, others) {
       let best = -1;
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0, tries = 0; i < 8 && tries < 40; tries++) {
         const x = rand(b.minX, b.maxX);
         const y = rand(b.minY, b.maxY);
+        if (this.game.hidden(x, y)) continue;
+        i++;
         let room = Infinity;
         for (const o of others) {
           if (o === this || o.leaving) continue;
@@ -98,6 +102,8 @@
           }
         }
       } else if (!this.moving) {
+        // Nudged behind a tree while resting? Move on right away.
+        if (this.game.hidden(this.x, this.y)) this.wait = 0;
         this.wait -= dt;
         if (this.wait <= 0) {
           this.pickTarget(b, others);
@@ -150,6 +156,7 @@
       this.size = { w: 100, h: 80 };
       this.bounds = {};
       this.location = DM.LOCATIONS[0];
+      this.trees = [];
       this.loop = this.loop.bind(this);
       window.addEventListener('resize', () => this.running && this.measure());
       this.card.addEventListener('pointerdown', () => this.target && this.announce());
@@ -172,11 +179,111 @@
         a.tx = clamp(a.tx, b.minX, b.maxX);
         a.ty = clamp(a.ty, b.minY, b.maxY);
       }
+      this.layoutTrees();
+    }
+
+    // Pick a location for this round (never the same one twice in a row).
+    chooseLocation() {
+      const options = DM.LOCATIONS.filter((l) => l !== this.location);
+      this.location = options[Math.floor(Math.random() * options.length)] || DM.LOCATIONS[0];
+      DM.buildScene(this.scene, this.location.id);
+    }
+
+    // ---- Trees (forest) ----
+
+    makeTrees() {
+      this.trees = [];
+      const cfg = this.location.trees;
+      if (!cfg) return;
+      const n = clamp(Math.round(this.bounds.W / (this.size.w * cfg.spacing)), 4, cfg.max || 7);
+      for (let i = 0; i < n; i++) {
+        const el = document.createElement('div');
+        el.className = 'prop tree';
+        el.innerHTML = `<div class="prop-shadow"></div>${DM.pineSVG()}`;
+        el.style.setProperty('--pine', ['#3fae5f', '#37a05a', '#4bb867'][i % 3]);
+        this.field.appendChild(el);
+        this.trees.push({
+          el,
+          fx: (i + 0.5 + rand(-0.25, 0.25)) / n,
+          fy: i % 2 ? rand(0.45, 1) : rand(0, 0.55), // stagger rows
+          scale: rand(0.8, 1.05),
+        });
+      }
+      this.layoutTrees();
+    }
+
+    layoutTrees() {
+      const b = this.bounds;
+      for (const t of this.trees) {
+        t.w = this.size.w * 1.05 * t.scale;
+        t.h = t.w * 1.7;
+        t.x = t.fx * b.W;
+        t.y = b.minY + t.fy * (b.maxY - b.minY);
+        t.el.style.width = `${t.w}px`;
+        t.el.style.transform = `translate3d(${(t.x - t.w / 2).toFixed(1)}px, ${(t.y - t.h).toFixed(1)}px, 0)`;
+        t.el.style.zIndex = 10 + Math.round(t.y);
+      }
+    }
+
+    // Would a dino standing with its feet at (x, y) be mostly hidden by a tree?
+    hidden(x, y) {
+      for (const t of this.trees) {
+        if (y < t.y + 2 && y > t.y - t.h * 0.75 && Math.abs(x - t.x) < t.w * 0.5) return true;
+      }
+      return false;
+    }
+
+    // ---- Fog (volcano) ----
+
+    scheduleFog(first) {
+      const f = this.location.fog;
+      if (!f) return;
+      const [lo, hi] = first ? f.first : f.every;
+      this.later(() => {
+        if (!this.running) return;
+        this.rollFog();
+        this.scheduleFog(false);
+      }, rand(lo, hi) * 1000);
+    }
+
+    rollFog() {
+      const { W, H } = this.bounds;
+      const f = this.location.fog;
+      const el = document.createElement('div');
+      el.className = 'fog';
+      const width = W * 1.6;
+      const height = H * rand(0.45, 0.6);
+      el.style.width = `${width}px`;
+      el.style.height = `${height}px`;
+      el.style.top = `${rand(H * this.location.horizon * 0.8, H - height)}px`;
+      el.style.setProperty('--from', `${-width}px`);
+      el.style.setProperty('--to', `${W}px`);
+      el.style.animationDuration = `${rand(f.duration[0], f.duration[1]).toFixed(1)}s`;
+      let puffs = '';
+      for (let i = 0; i < 14; i++) {
+        puffs += `<span style="left:${rand(0, 80).toFixed(1)}%;top:${rand(0, 55).toFixed(1)}%;` +
+          `width:${rand(22, 40).toFixed(1)}%;height:${rand(45, 75).toFixed(1)}%;opacity:${rand(0.55, 0.9).toFixed(2)}"></span>`;
+      }
+      el.innerHTML = puffs;
+      el.addEventListener('animationend', () => el.remove());
+      this.field.appendChild(el);
+    }
+
+    // ---- Round-start banner ----
+
+    showBanner() {
+      const el = document.createElement('div');
+      el.className = 'loc-banner';
+      el.textContent = `${this.location.emoji} ${this.location.name}`;
+      el.addEventListener('animationend', () => el.remove());
+      this.field.appendChild(el);
     }
 
     start() {
       this.stop();
+      this.chooseLocation();
       this.measure();
+      this.makeTrees();
       const count = randInt(MIN_DINOS, Math.min(MAX_DINOS, DM.DINOS.length));
       this.actors = shuffle(DM.DINOS).slice(0, count).map((d) => new Actor(d, this));
       this.placeActors();
@@ -192,6 +299,8 @@
       this.running = true;
       this.last = performance.now();
       this.raf = requestAnimationFrame(this.loop);
+      this.showBanner();
+      this.scheduleFog(true);
       this.later(() => this.nextTarget(), 600);
     }
 
@@ -203,6 +312,8 @@
       this.actors.forEach((a) => a.el.remove());
       this.actors = [];
       this.target = null;
+      this.field.querySelectorAll('.prop, .fog, .loc-banner').forEach((el) => el.remove());
+      this.trees = [];
     }
 
     later(fn, ms) {
@@ -219,6 +330,7 @@
         let bestD = -1;
         for (let i = 0; i < 40; i++) {
           const p = { x: rand(b.minX, b.maxX), y: rand(b.minY, b.maxY) };
+          if (this.hidden(p.x, p.y) && i < 39) continue;
           const d = Math.min(Infinity, ...placed.map((q) => Math.hypot(q.x - p.x, (q.y - p.y) * 1.6)));
           if (d > bestD) { best = p; bestD = d; }
           if (d >= minD) break;

@@ -20,7 +20,6 @@
 
   // ---- Scenes ----
   DM.buildScene($('menu-scene'));
-  DM.buildScene($('field-scene'));
 
   // ---- Menu parade of dinos walking along the bottom ----
   function buildParade() {
@@ -53,6 +52,7 @@
 
   const game = new DM.Game({
     field: $('field'),
+    scene: $('field-scene'),
     card: $('target-card'),
     pic: $('target-pic'),
     label: $('target-label'),

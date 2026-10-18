@@ -159,6 +159,131 @@ button { font: inherit; color: inherit; }
   opacity: 0.9;
 }
 
+/* ---------- Pine Forest ---------- */
+
+.scene-forest { background: linear-gradient(#a6dcf5, #e3f5ec 32%); }
+.scene-forest .h1 { background: #7fc78e; top: 18%; }
+.scene-forest .h2 { background: #6bb87f; top: 21%; }
+.scene-forest .far-pines { position: absolute; left: 0; right: 0; top: 0; height: 31%; }
+.scene-forest .far-pine {
+  position: absolute;
+  bottom: 0;
+  aspect-ratio: 100 / 170;
+  transform: scale(var(--d));
+  transform-origin: 50% 100%;
+  --pine: #4f9e6a;
+  opacity: 0.85;
+}
+.scene-forest .far-pine .pine { width: 100%; height: 100%; display: block; }
+.scene-forest .grass { top: 30%; background: linear-gradient(#7ccb67, #5fb453 55%, #4ea548); border-top-color: #5aa955; }
+.scene-forest .shroom {
+  position: absolute;
+  width: 16px;
+  height: 11px;
+  border-radius: 10px 10px 3px 3px;
+  background: radial-gradient(circle at 30% 45%, #fff 0 2px, transparent 2.5px),
+              radial-gradient(circle at 70% 40%, #fff 0 2px, transparent 2.5px), #e8443a;
+  border: 2px solid #000;
+}
+.scene-forest .shroom::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 8px;
+  width: 4px;
+  height: 7px;
+  background: #fff3dc;
+  border: 2px solid #000;
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+}
+
+/* Trees in the field, layered with the dinos (z-index set in game.js). */
+.prop { position: absolute; left: 0; top: 0; pointer-events: none; }
+.tree { aspect-ratio: 100 / 170; }
+.tree .pine { position: relative; display: block; width: 100%; height: 100%; }
+.prop-shadow {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  bottom: -2%;
+  height: 6%;
+  border-radius: 50%;
+  background: rgba(20, 60, 20, 0.28);
+}
+
+/* ---------- Volcano Valley ---------- */
+
+.scene-volcano { background: linear-gradient(#5b3a6e, #c25a5a 20%, #ffa36b 34%); }
+.scene-volcano .volcano { position: absolute; left: 22%; width: 56%; top: 8%; height: 28%; }
+.scene-volcano .smoke {
+  position: absolute;
+  left: 49%;
+  top: 6%;
+  width: 7%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(110, 90, 110, 0.75);
+  animation: smoke 6s ease-out infinite;
+}
+.scene-volcano .s2 { animation-delay: -2s; left: 47%; }
+.scene-volcano .s3 { animation-delay: -4s; left: 51%; }
+.scene-volcano .h1 { background: #a0605b; top: 26%; }
+.scene-volcano .h2 { background: #8c5257; top: 28%; }
+.scene-volcano .grass { top: 34%; background: linear-gradient(#9a6a52, #7d5444 55%, #6b4739); border-top-color: #8a5d4a; }
+.scene-volcano .rock {
+  position: absolute;
+  width: calc(22px * var(--s));
+  height: calc(14px * var(--s));
+  border-radius: 50% 50% 35% 35%;
+  background: #5a4048;
+  border: 2px solid #000;
+  box-shadow: inset -4px -3px 0 rgba(0, 0, 0, 0.2);
+}
+.scene-volcano .crack {
+  position: absolute;
+  width: 70px;
+  height: 5px;
+  border-radius: 3px;
+  background: #ff8c2a;
+  box-shadow: 0 0 8px 2px rgba(255, 140, 42, 0.7);
+  transform: rotate(var(--a));
+  animation: glow 2.4s ease-in-out infinite alternate;
+}
+
+/* Fog banks rolling across the field (above the dinos, taps pass through). */
+.fog {
+  position: absolute;
+  left: 0;
+  z-index: 5000;
+  pointer-events: none;
+  animation: fog-roll 10s linear forwards;
+}
+.fog span {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(238, 226, 232, 0.95), rgba(226, 212, 222, 0.7) 55%, transparent);
+}
+
+/* Location name at the start of each round */
+.loc-banner {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  z-index: 6000;
+  padding: 0.25em 0.9em 0.35em;
+  background: var(--cream);
+  border: 4px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 0 5px 0 var(--ink);
+  font-size: clamp(20px, 4vmin, 32px);
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: banner 2.4s ease-in-out forwards;
+}
+
 /* ---------- Main menu ---------- */
 
 #screen-menu { align-items: center; justify-content: center; }
@@ -594,6 +719,20 @@ body.dad-locked .credits-card a { pointer-events: none; color: inherit; text-dec
 @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.6); } 100% { transform: scale(1); } }
 @keyframes letter-bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-12%) rotate(-4deg); } }
 
+@keyframes fog-roll { from { transform: translateX(var(--from)); } to { transform: translateX(var(--to)); } }
+@keyframes smoke {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  20% { opacity: 0.9; }
+  100% { transform: translateY(-160%) scale(1.8); opacity: 0; }
+}
+@keyframes glow { from { opacity: 0.55; } to { opacity: 1; } }
+@keyframes banner {
+  0% { transform: translateX(-50%) scale(0.4); opacity: 0; }
+  15% { transform: translateX(-50%) scale(1.08); opacity: 1; }
+  25% { transform: translateX(-50%) scale(1); }
+  80% { opacity: 1; }
+  100% { transform: translateX(-50%) translateY(-30%); opacity: 0; }
+}
 @keyframes drift { from { transform: translateX(-40vw); } to { transform: translateX(140vw); } }
 @keyframes parade { from { transform: translateX(-30vw); } to { transform: translateX(130vw); } }
 @keyframes confetti {
@@ -601,5 +740,5 @@ body.dad-locked .credits-card a { pointer-events: none; color: inherit; text-dec
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logo span, .scene .cloud, .target-pic .dino-svg, .win-trophy { animation: none; }
+  .logo span, .scene .cloud, .scene .smoke, .scene .crack, .target-pic .dino-svg, .win-trophy { animation: none; }
 }
