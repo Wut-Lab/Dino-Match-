@@ -65,7 +65,7 @@
       name: 'Pine Forest',
       emoji: '🌲',
       horizon: 0.3,
-      trees: { spacing: 0.9, max: 9 }, // about one tree per 0.9 dino-widths of field
+      trees: { backSpacing: 0.8, maxHidden: 0.2, maxMid: 4 }, // see Game.makeTrees
       build() {
         const r = seeded(11);
         // A crowded line of far-away pines along the horizon.

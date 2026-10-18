@@ -191,23 +191,38 @@
 
     // ---- Trees (forest) ----
 
+    // Two kinds of trees:
+    //  - a dense back row along the far edge of the walking area, where no dino
+    //    can get behind them (looks like a forest, hides nobody);
+    //  - a few trees out among the dinos, which they can walk behind. These are
+    //    capped so hiding spots cover at most `cfg.maxHidden` of the floor.
     makeTrees() {
       this.trees = [];
       const cfg = this.location.trees;
       if (!cfg) return;
-      const n = clamp(Math.round(this.bounds.W / (this.size.w * cfg.spacing)), 4, cfg.max || 7);
-      for (let i = 0; i < n; i++) {
+      const b = this.bounds;
+      const w = this.size.w;
+      const add = (fx, fy, scale, i) => {
         const el = document.createElement('div');
         el.className = 'prop tree';
         el.innerHTML = `<div class="prop-shadow"></div>${DM.pineSVG()}`;
         el.style.setProperty('--pine', ['#3fae5f', '#37a05a', '#4bb867'][i % 3]);
         this.field.appendChild(el);
-        this.trees.push({
-          el,
-          fx: (i + 0.5 + rand(-0.25, 0.25)) / n,
-          fy: i % 2 ? rand(0.45, 1) : rand(0, 0.55), // stagger rows
-          scale: rand(0.8, 1.05),
-        });
+        this.trees.push({ el, fx, fy, scale });
+      };
+
+      const back = Math.max(3, Math.round(b.W / (w * cfg.backSpacing)));
+      for (let i = 0; i < back; i++) {
+        add((i + 0.5 + rand(-0.3, 0.3)) / back, rand(-0.12, 0), rand(0.75, 1), i);
+      }
+
+      // Hiding area of one tree ~ its width x 75% of its height (see hidden()).
+      const avgScale = 0.95;
+      const perTree = (w * 1.05 * avgScale) * (w * 1.05 * avgScale * 1.7 * 0.75);
+      const floor = (b.maxX - b.minX + w) * (b.maxY - b.minY);
+      const mid = clamp(Math.floor((floor * cfg.maxHidden) / perTree), 1, cfg.maxMid);
+      for (let i = 0; i < mid; i++) {
+        add((i + 0.5 + rand(-0.2, 0.2)) / mid, i % 2 ? rand(0.6, 1) : rand(0.3, 0.6), rand(0.85, 1.05), i + 1);
       }
       this.layoutTrees();
     }
