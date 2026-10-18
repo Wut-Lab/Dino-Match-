@@ -7,7 +7,8 @@ For each dino it:
   * swaps the original colours for our palette,
   * removes or adds parts (that's how Stegosaurus and Parasaurolophus are
     remixed from the Ankylosaurus and T-Rex),
-  * adds rosy cheeks.
+  * adds rosy cheeks,
+  * marks the eyes (class "eye") so they can blink.
 
 Run it after changing anything in DINOS below:
     python3 tools/build-art.py
@@ -40,31 +41,28 @@ def cheeks(*pts, rx=13, ry=8):
         f'<ellipse cx="{x}" cy="{y}" rx="{rx}" ry="{ry}" fill="{CHEEK}" opacity=".55"/>' for x, y in pts)
 
 
-def plate_fan(cx, cy, r, color, count=7, start=200, end=340):
-    """Stegosaurus back plates: rounded kites fanned around the top of the body."""
+def plate_fan(cx, cy, r, color, start=196, end=344):
+    """Stegosaurus back plates: leaf-shaped, biggest in the middle, fanned
+    around the top of the body with their bases tucked behind it."""
     import math
+    sizes = [(40, 15), (54, 19), (66, 23), (74, 26), (66, 23), (54, 19), (40, 15)]  # (length, half-width)
     out = []
-    for i in range(count):
-        a = math.radians(start + (end - start) * i / (count - 1))
-        big = i % 2 == 0
-        L = 62 if big else 48   # how far the plate sticks out
-        W = 26 if big else 21   # half-width
-        bx, by = cx + math.cos(a) * (r - 20), cy + math.sin(a) * (r - 20)
-        tx, ty = cx + math.cos(a) * (r + L), cy + math.sin(a) * (r + L)
-        nx, ny = -math.sin(a), math.cos(a)
-        mx, my = cx + math.cos(a) * (r + L * 0.45), cy + math.sin(a) * (r + L * 0.45)
-        lx, ly = mx + nx * W, my + ny * W
-        rx_, ry_ = mx - nx * W, my - ny * W
-        d = (f'M{bx:.1f} {by:.1f} Q{lx - nx * 4:.1f} {ly - ny * 4:.1f} {lx:.1f} {ly:.1f} '
-             f'Q{tx + nx * 10:.1f} {ty + ny * 10:.1f} {tx:.1f} {ty:.1f} '
-             f'Q{tx - nx * 10:.1f} {ty - ny * 10:.1f} {rx_:.1f} {ry_:.1f} '
-             f'Q{rx_ + nx * 4:.1f} {ry_ + ny * 4:.1f} {bx:.1f} {by:.1f}Z')
-        out.append(f'<path d="{d}" style="fill:{color};stroke:{INK};stroke-width:4;stroke-linejoin:round"/>')
-        # shading on one side of each plate, like the rest of the set
-        sd = (f'M{bx:.1f} {by:.1f} Q{rx_ + nx * 4:.1f} {ry_ + ny * 4:.1f} {rx_:.1f} {ry_:.1f} '
-              f'Q{tx - nx * 10:.1f} {ty - ny * 10:.1f} {tx:.1f} {ty:.1f} '
-              f'Q{mx - nx * 6:.1f} {my - ny * 6:.1f} {bx:.1f} {by:.1f}Z')
-        out.append(f'<path d="{sd}" style="{SHADE}"/>')
+    for i, (L, W) in enumerate(sizes):
+        deg = start + (end - start) * i / (len(sizes) - 1)
+        a = math.radians(deg)
+        bx, by = cx + math.cos(a) * (r - 18), cy + math.sin(a) * (r - 18)
+        # Drawn pointing up from the origin, then rotated into place.
+        leaf = (f'M{-W * 0.7:.1f} 0 C{-W * 1.25:.1f} {-L * 0.45:.1f} {-W * 0.55:.1f} {-L * 0.88:.1f} 0 {-L - 18:.1f} '
+                f'C{W * 0.55:.1f} {-L * 0.88:.1f} {W * 1.25:.1f} {-L * 0.45:.1f} {W * 0.7:.1f} 0Z')
+        shade = (f'M0 {-L - 18:.1f} C{W * 0.55:.1f} {-L * 0.88:.1f} {W * 1.25:.1f} {-L * 0.45:.1f} {W * 0.7:.1f} 0 '
+                 f'L{W * 0.15:.1f} 0 C{W * 0.5:.1f} {-L * 0.4:.1f} {W * 0.3:.1f} {-L * 0.8:.1f} 0 {-L - 18:.1f}Z')
+        vein = f'M{-W * 0.35:.1f} {-L * 0.12:.1f} C{-W * 0.6:.1f} {-L * 0.45:.1f} {-W * 0.35:.1f} {-L * 0.75:.1f} {-W * 0.05:.1f} {-L * 0.95:.1f}'
+        out.append(
+            f'<g transform="translate({bx:.1f} {by:.1f}) rotate({deg + 90:.1f})">'
+            f'<path d="{leaf}" style="fill:{color};stroke:{INK};stroke-width:4;stroke-linejoin:round"/>'
+            f'<path d="{shade}" style="{SHADE}"/>'
+            f'<path d="{vein}" style="fill:none;stroke:#fff;stroke-opacity:.45;stroke-width:4;stroke-linecap:round"/>'
+            f'</g>')
     return ''.join(out)
 
 
@@ -89,16 +87,19 @@ def crest(color):
 DINOS = [
     {
         'id': 'trex', 'src': 'trex-23513.svg',
+        'eyes': [r'^g300$', r'^g306$'],
         'colors': {'#698000': '#6fd34f'},
         'after': cheeks((84, 100), (161, 100)),
     },
     {
         'id': 'triceratops', 'src': 'triceratops-23511.svg',
+        'eyes': [r'^g278$', r'^g282$'],
         'colors': {'#698000': '#ff9b2f'},
         'after': cheeks((60, 146), (154, 146)),
     },
     {
         'id': 'stegosaurus', 'src': 'ankylosaurus-356643.svg',
+        'eyes': [r'^g255$', r'^g259$'],
         'colors': {'#698000': '#a07cff', '#485800': '#8160e6'},
         'remove': [r'^g297'],  # the ring of spikes
         'viewBox': '-40 -62 370 300',
@@ -108,11 +109,13 @@ DINOS = [
     },
     {
         'id': 'brontosaurus', 'src': 'brontosaurus-23508.svg',
+        'eyes': [r'^g255$', r'^g259$'],
         'colors': {'#698000': '#3fa9f5'},
         'after': cheeks((48, 98), (141, 98), rx=12, ry=7),
     },
     {
         'id': 'pterodactyl', 'src': 'pterodactyl-28420.svg', 'flies': True,
+        'eyes': [r'^eyes$'],
         'colors': {'#d37d1a': '#ffcf3a'},
         'gradient_fill': '#ffb703',   # toes were gradients; flatten them
         'remove': [r'^shadow$'],      # drop shadow (the game draws its own)
@@ -121,11 +124,13 @@ DINOS = [
     },
     {
         'id': 'ankylosaurus', 'src': 'ankylosaurus-356643.svg',
+        'eyes': [r'^g255$', r'^g259$'],
         'colors': {'#698000': '#20c4a8', '#485800': '#138f7a'},
         'after': cheeks((80, 140), (144, 140), rx=11, ry=7),
     },
     {
         'id': 'parasaurolophus', 'src': 'trex-23513.svg',
+        'eyes': [r'^g300$', r'^g306$'],
         'colors': {'#698000': '#ff7eb6'},
         'remove': [r'^g282$', r'^g285$'],  # T-Rex fangs
         'viewBox': '0 -118 308 482',
@@ -134,6 +139,7 @@ DINOS = [
     },
     {
         'id': 'spinosaurus', 'src': 'spinosaurus-356257.svg',
+        'eyes': [r'^g300$', r'^g306$'],
         'colors': {'#698000': '#ff5a4e', '#95702b': '#ffd23f'},
         'after': cheeks((84, 100), (161, 100)),
     },
@@ -172,7 +178,12 @@ def clean(el, cfg):
         if tag == 'g' and not inner:
             continue
         a = (' ' + ' '.join(attrs)) if attrs else ''
-        out.append(f'<{tag}{a}>{inner}</{tag}>' if tag == 'g' else f'<{tag}{a}/>')
+        markup = f'<{tag}{a}>{inner}</{tag}>' if tag == 'g' else f'<{tag}{a}/>'
+        # Wrap eyes in their own group so CSS can blink them without
+        # fighting the original transform attributes.
+        if any(re.search(p, cid) for p in cfg.get('eyes', [])):
+            markup = f'<g class="eye">{markup}</g>'
+        out.append(markup)
     return ''.join(out)
 
 

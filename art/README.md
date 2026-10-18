@@ -6,7 +6,7 @@ no license notice, and allows changes and commercial use. This file is here only
 to record where the art came from.
 
 The unmodified originals are in `source/`. `tools/build-art.py` recolours and
-remixes them into `js/dino-art.js`.
+remixes them into `js/dino-art.js`, and marks each dino's eyes so they can blink.
 
 | Game dino | Source file | Openclipart page | Artists | What we changed |
 |---|---|---|---|---|
@@ -16,7 +16,7 @@ remixes them into `js/dino-art.js`.
 | Pterodactyl | `pterodactyl-28420.svg` | [Cartoon Pterodactyl](https://openclipart.org/detail/28420) | StudioFibonacci, anarres | Recoloured, flat toes, drop shadow removed, cheeks |
 | Ankylosaurus | `ankylosaurus-356643.svg` | [Ankylosaurus](https://openclipart.org/detail/356643) | AreYouPrepared | Recoloured, cheeks |
 | Spinosaurus | `spinosaurus-356257.svg` | [Spinosaurus](https://openclipart.org/detail/356257) | AreYouPrepared | Recoloured, cheeks |
-| Stegosaurus | `ankylosaurus-356643.svg` | (remix) | Ankylosaurus above, plus new parts | Spike ring swapped for back plates, tail spikes added |
+| Stegosaurus | `ankylosaurus-356643.svg` | (remix) | Ankylosaurus above, plus new parts | Spike ring swapped for leaf-shaped back plates, tail spikes added |
 | Parasaurolophus | `trex-23513.svg` | (remix) | T-Rex above, plus new parts | Fangs removed, head crest added |
 
 The CC0 licence on every page above was checked on 2026-10-18. Each page also
