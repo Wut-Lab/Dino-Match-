@@ -19,6 +19,11 @@
     { id: 'ankylosaurus', name: 'Ankylosaurus', credit: { artist: 'AreYouPrepared', url: OC + '356643' } },
     { id: 'parasaurolophus', name: 'Parasaurolophus', credit: { artist: 'StudioFibonacci', url: OC + '23513', note: 'remix of the T-Rex' } },
     { id: 'spinosaurus', name: 'Spinosaurus', credit: { artist: 'AreYouPrepared', url: OC + '356257' } },
+    { id: 'velociraptor', name: 'Velociraptor', credit: { artist: 'AreYouPrepared', url: OC + '355256' } },
+    { id: 'allosaurus', name: 'Allosaurus', credit: { artist: 'AreYouPrepared', url: OC + '355256', note: 'remix of the Velociraptor' } },
+    { id: 'dilophosaurus', name: 'Dilophosaurus', credit: { artist: 'StudioFibonacci', url: OC + '23513', note: 'remix of the T-Rex' } },
+    { id: 'pachycephalosaurus', name: 'Pachycephalosaurus', credit: { artist: 'StudioFibonacci', url: OC + '23513', note: 'remix of the T-Rex' } },
+    { id: 'archaeopteryx', name: 'Archaeopteryx', flies: true, scale: 1.3, credit: { artist: 'StudioFibonacci', url: OC + '28420', note: 'remix of the Pterodactyl' } },
   ];
 
   DM.DINOS = DINOS;
@@ -32,7 +37,7 @@
     const size = 200 * (opts.fit ? 1 : dino.scale || 1);
     const x = (200 - size) / 2;
     return `<svg class="dino-svg dino-${dino.id}" viewBox="0 0 200 200" aria-hidden="true">` +
-      `<g class="dino-pose"><svg x="${x}" y="${200 - size}" width="${size}" height="${size}" viewBox="${art.viewBox}" preserveAspectRatio="xMidYMax meet">` +
+      `<g class="dino-pose"><svg x="${x}" y="${200 - size}" width="${size}" height="${size}" viewBox="${art.viewBox}" preserveAspectRatio="xMidYMax meet" overflow="visible">` +
       `${art.svg}</svg></g></svg>`;
   };
 })(window.DinoMatch = window.DinoMatch || {});

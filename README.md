@@ -2,11 +2,11 @@
 
 A bubbly, cartoony dinosaur matching game for little kids.
 
-A picture of a dinosaur shows up on the left, and 6–8 dinosaurs wander around the meadow on the right. Tap the dino that matches the picture and it does a happy hop and walks off screen. Then a new dino shows up in the picture. Keep going until every dino has gone home. Each finished game adds one to the **Games won** counter on the main menu.
+A picture of a dinosaur shows up on the left, and 8 dinosaurs (picked at random each round) wander around the meadow on the right. Tap the dino that matches the picture and it does a happy hop and walks off screen. Then a new dino shows up in the picture. Keep going until every dino has gone home. Each finished game adds one to the **Games won** counter on the main menu.
 
 ## Features
 
-- 8 chubby cartoon dinos, each in its own colour: T-Rex, Triceratops, Stegosaurus, Brontosaurus, Pterodactyl, Ankylosaurus, Parasaurolophus and Spinosaurus. The art is public domain (CC0) from Openclipart; see [`art/README.md`](art/README.md)
+- 13 chubby cartoon dinos, each in its own colour: T-Rex, Triceratops, Stegosaurus, Brontosaurus, Pterodactyl, Ankylosaurus, Parasaurolophus, Spinosaurus, Velociraptor, Allosaurus, Dilophosaurus, Pachycephalosaurus and Archaeopteryx. Each round uses 8 of them at random. The art is public domain (CC0) from Openclipart; see [`art/README.md`](art/README.md)
 - Three locations, picked at random each round:
   - **Sunny Meadow**
   - **Pine Forest**: dinos can walk behind the trees, but never stop where they're hidden
@@ -60,7 +60,7 @@ tools/build-art.py  Recolours/remixes art/source into js/dino-art.js
 
 ## Extending it
 
-- **New dino:** put the SVG in `art/source/`, add an entry to `DINOS` in `tools/build-art.py` (colours to swap, parts to add or remove), run `python3 tools/build-art.py`, then add the same `id` and a `name` to `js/dinos.js`. Set `flies: true` for a flier.
+- **New dino:** put the SVG in `art/source/`, add an entry to `DINOS` in `tools/build-art.py` (colours to swap, parts to add or remove; `python3 tools/build-art.py --list <file>.svg` shows a file's parts), run `python3 tools/build-art.py`, then add the same `id`, a `name` and a `credit` to `js/dinos.js`. Set `flies: true` for a flier.
 - **Recolour a dino:** change its `colors` in `tools/build-art.py` and rebuild.
 - **New location:** add an entry to `LOCATIONS` in `js/scenes.js` and give it CSS under `.scene-<id>`. Add `trees` for pines the dinos walk behind, or `fog` for rolling fog banks.
 - **Unlocks & collectibles:** `js/storage.js` already tracks `gamesCompleted` and `dinosFound`. Add new fields to `defaults()` and existing saves will pick them up automatically.

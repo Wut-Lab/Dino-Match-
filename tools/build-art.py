@@ -12,6 +12,9 @@ For each dino it:
 
 Run it after changing anything in DINOS below:
     python3 tools/build-art.py
+
+To see a source file's parts (ids, colours) when writing a config:
+    python3 tools/build-art.py --list <file>.svg   (a file in art/source/)
 """
 import json
 import re
@@ -84,6 +87,114 @@ def crest(color):
             f'<path d="M110 20 C118 -36 168 -84 236 -94" style="fill:none;stroke:#fff;stroke-opacity:.35;stroke-width:6;stroke-linecap:round"/>')
 
 
+def bumps(cx, cy, r, color, start=145, end=395, count=14):
+    """Ankylosaurus armour: rounded bony knobs around the rim of the shell,
+    plus a few on the back, so they read as bumps rather than spikes."""
+    import math
+    out = []
+    rings = [(r - 4, count, start, end, 15, 12), (r - 34, 5, 205, 335, 12, 12)]
+    for rad, n, a0, a1, big, small in rings:
+        for i in range(n):
+            a = math.radians(a0 + (a1 - a0) * i / (n - 1))
+            x, y = cx + math.cos(a) * rad, cy + math.sin(a) * rad
+            k = big if i % 2 == 0 else small
+            out.append(
+                f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{k}" style="fill:{color};stroke:{INK};stroke-width:3.5"/>'
+                f'<path d="M{x - k * 0.75:.1f} {y + k * 0.35:.1f} A{k} {k} 0 0 0 {x + k * 0.75:.1f} {y + k * 0.35:.1f} '
+                f'A{k * 0.9:.1f} {k * 0.7:.1f} 0 0 1 {x - k * 0.75:.1f} {y + k * 0.35:.1f}Z" style="{SHADE}"/>'
+                f'<circle cx="{x - k * 0.35:.1f}" cy="{y - k * 0.35:.1f}" r="{k * 0.25:.1f}" fill="#fff" opacity=".6"/>')
+    return ''.join(out)
+
+
+def feet(color, offset=(88.31382, 19.89826)):
+    """New feet for the Velociraptor (the source is cropped through its feet).
+    Inserted inside the source's shifted group, so `offset` undoes its transform."""
+    out = [f'<g transform="translate({offset[0]} {offset[1]})">']
+    for cx in (66.5, 146.5):
+        out.append(
+            f'<ellipse cx="{cx}" cy="298" rx="40" ry="34" style="fill:{color};stroke:{INK};stroke-width:4"/>')
+        for dx, dy, ry in ((-19, 318, 11), (0, 322, 12), (19, 318, 11)):
+            out.append(f'<ellipse cx="{cx + dx}" cy="{dy}" rx="8.5" ry="{ry}" style="fill:#fff;stroke:{INK};stroke-width:3.5"/>')
+    out.append('</g>')
+    return ''.join(out)
+
+
+def tuft(cx, cy, color, n=3, length=34, spread=22):
+    """A little tuft of feathers sticking up (drawn behind the head)."""
+    out = []
+    for i in range(n):
+        ang = -90 + (i - (n - 1) / 2) * spread
+        out.append(
+            f'<g transform="translate({cx} {cy}) rotate({ang})">'
+            f'<path d="M0 -8 Q{length * 0.6} -14 {length} 0 Q{length * 0.6} 14 0 8Z" style="fill:{color};stroke:{INK};stroke-width:3.5;stroke-linejoin:round"/>'
+            f'<path d="M4 0 L{length - 6} 0" style="fill:none;stroke:#000;stroke-opacity:.25;stroke-width:2.5;stroke-linecap:round"/>'
+            f'</g>')
+    return ''.join(out)
+
+
+def horn(x, y, ang, color, size=26):
+    """A small rounded horn (Allosaurus brow horns)."""
+    return (f'<g transform="translate({x} {y}) rotate({ang})">'
+            f'<path d="M-11 0 Q-8 {-size * 0.6} 0 {-size} Q8 {-size * 0.6} 11 0Z" style="fill:{color};stroke:{INK};stroke-width:3.5;stroke-linejoin:round"/>'
+            f'<path d="M0 {-size} Q8 {-size * 0.6} 11 0 L3 0 Q4 {-size * 0.5} 0 {-size}Z" style="{SHADE}"/>'
+            f'</g>')
+
+
+def twin_crests(color, stripe):
+    """Dilophosaurus: two thin fan-shaped crests side by side on top of the head."""
+    out = []
+    for cx, ang in ((104, -16), (141, 16)):
+        out.append(
+            f'<g transform="translate({cx} 30) rotate({ang}) scale(1.3)">'
+            f'<path d="M-14 0 C-24 -40 -16 -70 0 -76 C16 -70 24 -40 14 0Z" style="fill:{color};stroke:{INK};stroke-width:3.5;stroke-linejoin:round"/>'
+            f'<path d="M0 -76 C16 -70 24 -40 14 0 L5 0 C12 -36 8 -62 0 -76Z" style="{SHADE}"/>'
+            f'<path d="M-9 -14 Q0 -20 9 -14 M-12 -32 Q0 -40 12 -32 M-11 -50 Q0 -58 11 -50" style="fill:none;stroke:{stripe};stroke-width:4;stroke-linecap:round"/>'
+            f'</g>')
+    return ''.join(out)
+
+
+def dome(color, knob):
+    """Pachycephalosaurus: a big rounded dome on the head, ringed by knobs."""
+    import math
+    cx, cy, rx, ry = 122, 24, 62, 38
+    out = [f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" style="fill:{color};stroke:{INK};stroke-width:4"/>',
+           f'<path d="M{cx} {cy - ry} A{rx} {ry} 0 0 1 {cx + rx} {cy} L{cx + rx - 14} {cy} A{rx - 14} {ry - 10} 0 0 0 {cx} {cy - ry}Z" style="{SHADE}"/>',
+           f'<path d="M{cx - 40} {cy - 26} Q{cx - 22} {cy - 44} {cx} {cy - 44}" style="fill:none;stroke:#fff;stroke-opacity:.5;stroke-width:6;stroke-linecap:round"/>']
+    for i in range(7):
+        a = math.radians(190 + 160 * i / 6)
+        x, y = cx + math.cos(a) * (rx - 2), cy + math.sin(a) * (ry - 2)
+        out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="7" style="fill:{knob};stroke:{INK};stroke-width:3"/>')
+    return ''.join(out)
+
+
+def feathers(color, tip):
+    """Archaeopteryx: a fringe of feathers under both wings plus a feathered tail.
+    Drawn over the bottom edge of the Pterodactyl's wings so they read as layered feathers."""
+    import math
+    out = []
+
+    def feather(x, y, ang, length, width=13):
+        return (f'<g transform="translate({x:.1f} {y:.1f}) rotate({ang:.1f})">'
+                f'<path d="M0 {-width} Q{length * 0.65} {-width * 1.1} {length} 0 Q{length * 0.65} {width * 1.1} 0 {width}Z" style="fill:{color};stroke:{INK};stroke-width:3.5;stroke-linejoin:round"/>'
+                f'<path d="M{length * 0.62} {-width * 0.95} Q{length * 0.9} {-width * 0.5} {length} 0 Q{length * 0.9} {width * 0.5} {length * 0.62} {width * 0.95} Q{length * 0.7} 0 {length * 0.62} {-width * 0.95}Z" style="fill:{tip}"/>'
+                f'<path d="M6 0 L{length - 8} 0" style="fill:none;stroke:#000;stroke-opacity:.25;stroke-width:2.5;stroke-linecap:round"/>'
+                f'</g>')
+
+    # under each wing: from the wing tip in towards the body
+    for i in range(7):
+        t = i / 6
+        x = 22 + t * 240
+        y = 290 - math.sin(t * math.pi) * 12
+        ang = 112 - t * 26
+        length = 78 - t * 16
+        out.append(feather(x, y, ang, length))
+        out.append(feather(723 - x, y, 180 - ang, length))
+    # tail fan at the end of the tail
+    for ang in (-25, 5, 35):
+        out.append(feather(536, 318, ang, 92, 17))
+    return ''.join(out)
+
+
 DINOS = [
     {
         'id': 'trex', 'src': 'trex-23513.svg',
@@ -103,9 +214,10 @@ DINOS = [
         'colors': {'#698000': '#a07cff', '#485800': '#8160e6'},
         'remove': [r'^g297'],  # the ring of spikes
         'viewBox': '-40 -62 370 300',
-        'before': plate_fan(111, 108, 92, '#ff5fa2'),
-        'after': spike(252, 30, 195) + spike(284, 24, -20) + spike(256, 56, 165, 26) + spike(286, 52, 15, 26)
-                 + cheeks((80, 140), (144, 140), rx=11, ry=7),
+        # Tail spikes are drawn first (behind the tail) so they grow out of its tip.
+        'before': spike(262, 26, -140, 42) + spike(270, 24, -40, 42) + spike(260, 46, 185, 36) + spike(276, 44, -5, 36)
+                  + plate_fan(111, 108, 92, '#ff5fa2'),
+        'after': cheeks((80, 140), (144, 140), rx=11, ry=7),
     },
     {
         'id': 'brontosaurus', 'src': 'brontosaurus-23508.svg',
@@ -126,6 +238,8 @@ DINOS = [
         'id': 'ankylosaurus', 'src': 'ankylosaurus-356643.svg',
         'eyes': [r'^g255$', r'^g259$'],
         'colors': {'#698000': '#20c4a8', '#485800': '#138f7a'},
+        'remove': [r'^g297'],  # the original ring of spikes...
+        'insert_after': {'g242': bumps(111.5, 108.5, 92.5, '#f3e6c4')},  # ...becomes bony bumps on the shell
         'after': cheeks((80, 140), (144, 140), rx=11, ry=7),
     },
     {
@@ -143,11 +257,68 @@ DINOS = [
         'colors': {'#698000': '#ff5a4e', '#95702b': '#ffd23f'},
         'after': cheeks((84, 100), (161, 100)),
     },
+    {
+        'id': 'velociraptor', 'src': 'velociraptor-355256.svg',
+        'eyes': [r'^n44$', r'^n48$'],  # this file has no ids; see --list
+        'colors': {'#9f7e0d': '#b07642'},
+        'viewBox': '0 -52 302 390',
+        'remove': [r'^n18$', r'^n23$'],               # cropped feet...
+        'insert_after': {'n13': feet('#b07642')},     # ...replaced with whole ones
+        'before': tuft(105, 12, '#ff8c42', n=5, length=50, spread=17),
+        'after': cheeks((64, 78), (148, 78), rx=11, ry=7),
+    },
+    {
+        'id': 'allosaurus', 'src': 'velociraptor-355256.svg',
+        'eyes': [r'^n44$', r'^n48$'],
+        'colors': {'#9f7e0d': '#5763e0'},
+        'viewBox': '0 -44 302 382',
+        'remove': [r'^n18$', r'^n23$'],
+        'insert_after': {'n13': feet('#5763e0')},
+        'before': horn(50, 18, -28, '#ff7a3c', 40) + horn(161, 18, 28, '#ff7a3c', 40),
+        'after': cheeks((64, 78), (148, 78), rx=11, ry=7),
+    },
+    {
+        'id': 'dilophosaurus', 'src': 'trex-23513.svg',
+        'eyes': [r'^g300$', r'^g306$'],
+        'colors': {'#698000': '#c3e33f'},
+        'viewBox': '0 -82 308 446',
+        'before': twin_crests('#ff4d4d', '#ffd23f'),
+        'after': cheeks((84, 100), (161, 100)),
+    },
+    {
+        'id': 'pachycephalosaurus', 'src': 'trex-23513.svg',
+        'eyes': [r'^g300$', r'^g306$'],
+        'colors': {'#698000': '#f1e2c2'},
+        'remove': [r'^g282$', r'^g285$'],  # T-Rex fangs
+        'viewBox': '0 -24 308 388',
+        'insert_after': {'g291': dome('#d08a3e', '#8f5a2a')},  # over the head, under the eyes
+        'after': cheeks((84, 100), (161, 100)),
+    },
+    {
+        'id': 'archaeopteryx', 'src': 'pterodactyl-28420.svg', 'flies': True,
+        'eyes': [r'^eyes$'],
+        'colors': {'#d37d1a': '#d14fc8'},
+        'gradient_fill': '#ffcf3a',
+        'remove': [r'^shadow$'],
+        'viewBox': '0 0 723 445',
+        'after': feathers('#3ec1e6', '#1f6fb0') + cheeks((322, 206), (400, 206), rx=12, ry=7),
+    },
 ]
 
 
 def local(tag):
     return tag.split('}', 1)[-1]
+
+
+def auto_ids(root):
+    """Give every drawable element without an id a stable one ("n0", "n1", ...)
+    in document order, so files without ids can still be targeted."""
+    n = 0
+    for el in root.iter():
+        if local(el.tag) in ALLOWED_TAGS:
+            if not el.get('id'):
+                el.set('id', f'n{n}')
+            n += 1
 
 
 def clean(el, cfg):
@@ -184,11 +355,13 @@ def clean(el, cfg):
         if any(re.search(p, cid) for p in cfg.get('eyes', [])):
             markup = f'<g class="eye">{markup}</g>'
         out.append(markup)
+        out.append(cfg.get('insert_after', {}).get(cid, ''))
     return ''.join(out)
 
 
 def build(cfg):
     root = ET.parse(SRC / cfg['src']).getroot()
+    auto_ids(root)
     vb = cfg.get('viewBox') or root.get('viewBox')
     body = cfg.get('before', '') + clean(root, cfg) + cfg.get('after', '')
     body = re.sub(r'\s+', ' ', body)
@@ -205,5 +378,24 @@ def main():
     print(f'wrote {OUT.relative_to(ROOT)} ({len(js) // 1024} KB, {len(art)} dinos)')
 
 
+def list_parts(name):
+    """Print a source file's parts with their ids and colours (for writing configs)."""
+    root = ET.parse(SRC / name).getroot()
+    auto_ids(root)
+
+    def walk(el, depth):
+        for c in el:
+            if local(c.tag) not in ALLOWED_TAGS:
+                continue
+            fill = c.get('fill') or (re.search(r'fill:([^;]+)', c.get('style', '')) or [None, ''])[1]
+            print(f"{c.get('id'):<28}{'  ' * depth}{local(c.tag):8}{fill}")
+            walk(c, depth + 1)
+    walk(root, 0)
+
+
 if __name__ == '__main__':
-    main()
+    import sys
+    if len(sys.argv) == 3 and sys.argv[1] == '--list':
+        list_parts(sys.argv[2])
+    else:
+        main()

@@ -17,7 +17,7 @@
     return a;
   };
 
-  const MIN_DINOS = 6;
+  const MIN_DINOS = 8; // dinos per round, picked at random from the whole roster
   const MAX_DINOS = 8;
   const HINT_DELAY_MS = 9000; // show a hint if the player is stuck this long
   const MISSES_BEFORE_HINT = 2;
