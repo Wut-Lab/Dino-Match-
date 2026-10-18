@@ -146,6 +146,8 @@
     DM.Sound.play('tap');
   });
 
+  DM.DadLock.init(save);
+
   // Expose for debugging / future features.
   DM.app = { game, save, startGame, goMenu };
 })(window.DinoMatch = window.DinoMatch || {});

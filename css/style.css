@@ -65,12 +65,15 @@ button { font: inherit; color: inherit; }
 }
 .icon-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
 
-.sound-btn {
+.sound-btn, .fs-btn {
   position: fixed;
   z-index: 100;
   top: max(10px, env(safe-area-inset-top));
   right: max(14px, env(safe-area-inset-right));
 }
+.fs-btn { right: calc(max(14px, env(safe-area-inset-right)) + 68px); }
+.fs-btn svg { width: 26px; height: 26px; fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.fs-btn[hidden] { display: none; }
 
 .badge {
   display: inline-flex;
@@ -218,7 +221,7 @@ button { font: inherit; color: inherit; }
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: max(10px, env(safe-area-inset-top)) 84px 10px max(14px, env(safe-area-inset-left));
+  padding: max(10px, env(safe-area-inset-top)) 150px 10px max(14px, env(safe-area-inset-left));
 }
 
 .progress { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 auto; }
@@ -322,8 +325,11 @@ button { font: inherit; color: inherit; }
   .target-label { grid-area: label; justify-self: center; align-self: end; }
   .target-pic { grid-area: pic; margin: 0; }
   .target-name { grid-area: name; align-self: start; margin-top: 6px; }
-  .progress { gap: 5px; }
-  .pip { width: 20px; height: 20px; border-width: 3px; }
+  .pip { width: 18px; height: 18px; border-width: 3px; }
+  .progress { gap: 4px; }
+  .icon-btn { width: 48px; height: 48px; font-size: 22px; }
+  .fs-btn { right: calc(max(14px, env(safe-area-inset-right)) + 56px); }
+  .game-bar { padding-right: 126px; gap: 10px; }
 }
 
 /* ---------- Dinos ---------- */
@@ -498,7 +504,56 @@ button { font: inherit; color: inherit; }
 .credits-more { margin-top: 14px; color: #5b4a6b; font-size: 0.9em; }
 .credits-more p + p { margin-top: 4px; }
 .credits-back { margin-top: 18px; font-size: clamp(24px, 5vmin, 34px); }
-body.credits-open .sound-btn { visibility: hidden; }
+body.credits-open .sound-btn, body.credits-open .fs-btn { visibility: hidden; }
+/* Links would leave the game, so they're switched off while Dad Lock is on. */
+body.dad-locked .credits-card a { pointer-events: none; color: inherit; text-decoration: none; }
+
+/* ---------- Full screen menu & Dad Lock keypad ---------- */
+
+.top-overlay { position: fixed; z-index: 200; }
+#pad.lock-screen { background: rgba(61, 44, 78, 0.94); }
+.pad-card {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  background: var(--cream);
+  border: 6px solid var(--ink);
+  border-radius: 34px;
+  box-shadow: 0 10px 0 var(--ink);
+  padding: clamp(16px, 3.5vmin, 28px);
+  text-align: center;
+  animation: pop-in 0.4s cubic-bezier(.3, 1.6, .5, 1);
+}
+.pad-card.wiggle { animation: wiggle 0.45s ease-in-out; }
+.pad-card h2 { font-size: clamp(28px, 6vmin, 42px); color: var(--pink); line-height: 1.1; }
+.pad-text { margin: 8px 0 12px; font-size: clamp(16px, 2.6vmin, 19px); }
+.pad-text.pad-error { color: #d63a3a; font-weight: 700; }
+.fs-choices { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.fs-choices .btn-play { font-size: clamp(22px, 4.6vmin, 30px); }
+.link-btn { background: none; border: none; font-weight: 700; font-size: 17px; color: #6b5a7b; text-decoration: underline; cursor: pointer; padding: 6px; }
+.link-btn[hidden], .pad-actions .btn[hidden] { display: none; }
+
+.pad-dots { display: flex; justify-content: center; gap: 14px; height: 30px; margin-bottom: 14px; }
+.pad-dots i { width: 22px; height: 22px; border-radius: 50%; border: 4px solid var(--ink); background: #fff; }
+.pad-dots i.on { background: var(--ink); }
+.pad-answer { font-size: 28px; font-weight: 700; letter-spacing: 0.1em; }
+.pad-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 290px; margin: 0 auto; }
+.pad-key {
+  height: clamp(52px, 9vh, 64px);
+  font-size: 28px;
+  font-weight: 700;
+  background: #fff;
+  border: 4px solid var(--ink);
+  border-radius: 18px;
+  box-shadow: 0 5px 0 var(--ink);
+  cursor: pointer;
+  transition: transform 0.06s, box-shadow 0.06s;
+}
+.pad-key:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+.pad-key-fn { background: #e3f6ff; }
+.pad-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 16px; }
+.pad-actions .btn { font-size: clamp(20px, 4vmin, 26px); }
 
 /* ---------- Animations ---------- */
 

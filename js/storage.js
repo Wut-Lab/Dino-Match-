@@ -13,6 +13,8 @@
     gamesCompleted: 0,
     dinosFound: 0,
     soundOn: true,
+    dadLock: false, // full screen Dad Lock is on
+    pinHash: null,  // grown-up PIN (hashed) for the Dad Lock
   });
 
   DM.Save = {

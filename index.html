@@ -84,7 +84,36 @@
       </div>
     </section>
 
+    <button id="btn-fullscreen" class="icon-btn fs-btn" aria-label="Full screen"></button>
     <button id="btn-sound" class="icon-btn sound-btn" aria-label="Sound on" aria-pressed="true">🔊</button>
+
+    <!-- Full screen options (grown-up choice) -->
+    <div id="fs-menu" class="overlay hidden top-overlay" role="dialog" aria-modal="true" aria-labelledby="fs-title">
+      <div class="pad-card">
+        <h2 id="fs-title">Full screen</h2>
+        <p class="pad-text">Dad Lock keeps little hands in the game: leaving full screen needs a grown-up PIN.</p>
+        <div class="fs-choices">
+          <button id="fs-locked" class="btn btn-play">🔒 Full screen + Dad Lock</button>
+          <button id="fs-plain" class="btn btn-small">Just full screen</button>
+          <button id="fs-cancel" class="link-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIN keypad / lock screen -->
+    <div id="pad" class="overlay hidden top-overlay" role="dialog" aria-modal="true" aria-labelledby="pad-title">
+      <div class="pad-card">
+        <h2 id="pad-title">Grown-ups only</h2>
+        <p id="pad-msg" class="pad-text" aria-live="polite"></p>
+        <div id="pad-dots" class="pad-dots"></div>
+        <div id="pad-keys" class="pad-keys"></div>
+        <div class="pad-actions">
+          <button id="pad-resume" class="btn btn-play">Back to full screen</button>
+          <button id="pad-cancel" class="btn btn-small">Cancel</button>
+          <button id="pad-forgot" class="link-btn">Forgot PIN?</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="js/dino-art.js"></script>
@@ -93,6 +122,7 @@
   <script src="js/storage.js"></script>
   <script src="js/sound.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/dadlock.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
