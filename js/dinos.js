@@ -8,15 +8,17 @@
 (function (DM) {
   'use strict';
 
+  // `credit` is shown on the Credits screen. All art is CC0 from Openclipart.
+  const OC = 'https://openclipart.org/detail/';
   const DINOS = [
-    { id: 'trex', name: 'T-Rex' },
-    { id: 'triceratops', name: 'Triceratops' },
-    { id: 'stegosaurus', name: 'Stegosaurus' },
-    { id: 'brontosaurus', name: 'Brontosaurus' },
-    { id: 'pterodactyl', name: 'Pterodactyl', flies: true, scale: 1.3 },
-    { id: 'ankylosaurus', name: 'Ankylosaurus' },
-    { id: 'parasaurolophus', name: 'Parasaurolophus' },
-    { id: 'spinosaurus', name: 'Spinosaurus' },
+    { id: 'trex', name: 'T-Rex', credit: { artist: 'StudioFibonacci', url: OC + '23513' } },
+    { id: 'triceratops', name: 'Triceratops', credit: { artist: 'StudioFibonacci', url: OC + '23511' } },
+    { id: 'stegosaurus', name: 'Stegosaurus', credit: { artist: 'AreYouPrepared', url: OC + '356643', note: 'remix of the Ankylosaurus' } },
+    { id: 'brontosaurus', name: 'Brontosaurus', credit: { artist: 'StudioFibonacci', url: OC + '23508' } },
+    { id: 'pterodactyl', name: 'Pterodactyl', flies: true, scale: 1.3, credit: { artist: 'StudioFibonacci', url: OC + '28420' } },
+    { id: 'ankylosaurus', name: 'Ankylosaurus', credit: { artist: 'AreYouPrepared', url: OC + '356643' } },
+    { id: 'parasaurolophus', name: 'Parasaurolophus', credit: { artist: 'StudioFibonacci', url: OC + '23513', note: 'remix of the T-Rex' } },
+    { id: 'spinosaurus', name: 'Spinosaurus', credit: { artist: 'AreYouPrepared', url: OC + '356257' } },
   ];
 
   DM.DINOS = DINOS;

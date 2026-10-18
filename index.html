@@ -26,8 +26,28 @@
           <span>Games won</span>
           <strong id="games-count">0</strong>
         </div>
+        <button id="btn-credits" class="btn btn-small btn-credits">Credits</button>
       </div>
       <div class="parade" id="parade" aria-hidden="true"></div>
+
+      <div id="credits" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="credits-title">
+        <div class="credits-card">
+          <button id="btn-credits-close" class="icon-btn credits-close" aria-label="Close credits">✕</button>
+          <h2 id="credits-title">Credits</h2>
+          <p class="credits-intro">
+            Dinosaur art from <a href="https://openclipart.org" target="_blank" rel="noopener">Openclipart</a>,
+            released into the public domain (CC0). Thank you, artists!
+          </p>
+          <ul class="credits-list" id="credits-list"></ul>
+          <div class="credits-more">
+            <p>Cartoon style based on Lemmling's cartoon animals.</p>
+            <p>Font: <a href="https://fonts.google.com/specimen/Fredoka" target="_blank" rel="noopener">Fredoka</a>
+              by Milena Brandão (SIL Open Font License).</p>
+            <p>Sounds and voice are made live by your browser.</p>
+          </div>
+          <button id="btn-credits-back" class="btn btn-play credits-back">Back</button>
+        </div>
+      </div>
     </section>
 
     <!-- Gameplay -->

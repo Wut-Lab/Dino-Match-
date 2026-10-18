@@ -105,12 +105,31 @@
     $('confetti').innerHTML = html;
   }
 
+  // ---- Credits ----
+  $('credits-list').innerHTML = DM.DINOS.map((d) => {
+    const c = d.credit;
+    const note = c.note ? ` <span class="credit-note">(${c.note})</span>` : '';
+    return `<li><div class="credit-pic">${DM.dinoSVG(d, { fit: true })}</div>` +
+      `<div><strong>${d.name}</strong><br>by <a href="${c.url}" target="_blank" rel="noopener">${c.artist}</a>${note}</div></li>`;
+  }).join('');
+
+  function showCredits(on) {
+    $('credits').classList.toggle('hidden', !on);
+    document.body.classList.toggle('credits-open', on);
+    if (on) $('btn-credits-close').focus();
+  }
+  $('credits').addEventListener('click', (e) => { if (e.target.id === 'credits') showCredits(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') showCredits(false); });
+
   // ---- Buttons ----
   const click = (id, fn) => $(id).addEventListener('click', () => { DM.Sound.play('tap'); fn(); });
   click('btn-play', startGame);
   click('btn-again', startGame);
   click('btn-menu', goMenu);
   click('btn-home', goMenu);
+  click('btn-credits', () => showCredits(true));
+  click('btn-credits-close', () => showCredits(false));
+  click('btn-credits-back', () => showCredits(false));
 
   const soundBtn = $('btn-sound');
   function renderSound() {

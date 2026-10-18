@@ -13,6 +13,7 @@ A picture of a dinosaur shows up on the left, and 6–8 dinosaurs wander around 
 - Works with mouse and touch, in landscape and portrait (phones, tablets, desktops)
 - Progress is saved in the browser (`localStorage`)
 - A sound on/off toggle, and the setting is remembered
+- A Credits screen on the main menu naming each dino's artist (credits live next to each dino in `js/dinos.js`)
 - No build step to play, no dependencies, no audio files
 
 ## Play locally
