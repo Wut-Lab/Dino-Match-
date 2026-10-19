@@ -580,6 +580,7 @@ button { font: inherit; color: inherit; }
 /* fills let the shine through; outlines block it so they stay crisp black */
 .shine-mask * { fill: #fff !important; stroke: #000 !important; }
 .shine-mask .eye { animation: none; }
+.shine { pointer-events: none; } /* the shine covers the whole box; only the dino counts for taps */
 
 /* Golden dinos: a soft glow and twinkling sparkles until collected */
 .gold-glow .actor-flip { animation: gold-pulse 1.4s ease-in-out infinite alternate; }

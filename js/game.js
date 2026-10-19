@@ -65,10 +65,6 @@
         `<div class="actor-body"><div class="actor-flip">${DM.dinoSVG(dino, { gold: !!gold })}</div>` +
         (gold === 'glow' ? '<div class="gold-sparkles"><i></i><i></i><i></i><i></i></div>' : '') +
         `</div>`;
-      el.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        game.tap(this);
-      });
       this.el = el;
       this.body = el.querySelector('.actor-body');
     }
@@ -251,6 +247,14 @@
       this.loop = this.loop.bind(this);
       window.addEventListener('resize', () => this.running && this.measure());
       this.card.addEventListener('pointerdown', () => this.target && this.announce());
+      this.field.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.dstar')) return; // stars handle their own taps
+        const a = this.actorAt(e.clientX, e.clientY);
+        if (a) {
+          e.preventDefault();
+          this.tap(a);
+        }
+      });
     }
 
     measure() {
@@ -442,6 +446,29 @@
       this.burst(fs.x, fs.y);
       this.onStarCaught(fs.star);
       this.treasure(fs.el, fs.glow, fs.star.fullName);
+    }
+
+    // Which dino did a tap at (x, y) mean? Each dino sits in a square box, and
+    // a dino in front can overlap the one behind with an empty corner of its
+    // box. So the dino actually drawn under the finger wins; if the tap lands
+    // on empty space, the nearest dino whose box it's in gets it (so a near
+    // miss still counts).
+    actorAt(x, y) {
+      const live = this.actors.filter((a) => !a.leaving);
+      for (const el of document.elementsFromPoint(x, y)) {
+        if (!(el instanceof SVGGeometryElement)) continue;
+        const a = live.find((d) => d.el.contains(el));
+        if (a) return a;
+      }
+      let best = null;
+      let bestD = Infinity;
+      for (const a of live) {
+        const r = a.el.getBoundingClientRect();
+        if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue;
+        const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
+        if (d < bestD) { bestD = d; best = a; }
+      }
+      return best;
     }
 
     // Shared "you found something special" moment for golden dinos and

@@ -46,18 +46,41 @@ async function newPage(browser, viewport = { width: 1100, height: 700 }, initSav
   page.errors = [];
   page.on('pageerror', (e) => page.errors.push(e.message));
   page.on('console', (m) => { if (m.type() === 'error') page.errors.push(m.text()); });
+  await page.addInitScript(`window.__tapDino = ${TAP_DINO}`);
   await page.goto(URL);
   await page.waitForTimeout(300);
   return page;
 }
 const visible = (p, sel) => p.evaluate((s) => { const e = document.querySelector(s); return !!e && !e.classList.contains('hidden') && getComputedStyle(e).display !== 'none' && e.getClientRects().length > 0; }, sel);
 const save = (p) => p.evaluate(() => JSON.parse(localStorage.getItem('dino-match:save') || 'null'));
-const tapEl = (p, handle) => p.evaluate((el) => el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })), handle);
+// Tap a dino the way a finger would: at a spot where that dino is drawn on top.
+const TAP_DINO = (el) => {
+  const r = el.getBoundingClientRect();
+  let pt = null;
+  for (let fy = 0.2; fy <= 0.95 && !pt; fy += 0.05) {
+    for (let fx = 0.2; fx <= 0.8 && !pt; fx += 0.05) {
+      const x = r.left + r.width * fx, y = r.top + r.height * fy;
+      const top = document.elementsFromPoint(x, y);
+      if (top[0] && top[0].closest('.dstar')) continue;
+      const shape = top.find((e) => e instanceof SVGGeometryElement && e.closest('.actor'));
+      if (shape && el.contains(shape)) pt = { x, y };
+    }
+  }
+  if (!pt) return false;
+  document.elementFromPoint(pt.x, pt.y).dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, clientX: pt.x, clientY: pt.y }));
+  return true;
+};
+const tapEl = (p, handle) => p.evaluate((el) => window.__tapDino(el), handle);
 
 // Tap the current target dino; waits for a target first.
 async function tapTarget(p) {
   await p.waitForFunction(() => DinoMatch.app.game.target, null, { timeout: 15000 });
-  await p.evaluate(() => DinoMatch.app.game.target.el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true })));
+  // A dino can be fully covered for a moment; try again shortly if so.
+  for (let i = 0; i < 40; i++) {
+    if (await p.evaluate(() => window.__tapDino(DinoMatch.app.game.target.el))) return;
+    await p.waitForTimeout(100);
+  }
+  throw new Error('could not find a spot to tap the target dino');
 }
 async function playRound(p) {
   for (let i = 0; i < 8; i++) await tapTarget(p);
@@ -134,10 +157,9 @@ async function playRound(p) {
   await tapEl(p, wrong);
   check('Game: hint star after 2 misses', await p.evaluate(() => DinoMatch.app.game.target.el.classList.contains('hint')));
   // real mouse click on the target
-  // Click a spot where the target itself is on top. (A neighbour's see-through
-  // box corner can cover part of it; that's a known game bug, tested separately.)
+  // Click a spot where the target is drawn on top.
   const box = await p.evaluate(() => { const t = DinoMatch.app.game.target.el; const r = t.getBoundingClientRect();
-    for (let fy = 0.6; fy > 0.1; fy -= 0.05) for (let fx = 0.5; fx > 0.1; fx -= 0.05) for (const x of [r.x + r.width * fx, r.x + r.width * (1 - fx)]) { const y = r.y + r.height * fy; const h = document.elementFromPoint(x, y); if (h && h.closest('.actor') === t) return { x, y }; }
+    for (let fy = 0.6; fy > 0.1; fy -= 0.05) for (let fx = 0.5; fx > 0.1; fx -= 0.05) for (const x of [r.x + r.width * fx, r.x + r.width * (1 - fx)]) { const y = r.y + r.height * fy; const sh = document.elementsFromPoint(x, y).find((e) => e instanceof SVGGeometryElement && e.closest('.actor')); if (sh && t.contains(sh)) return { x, y }; }
     return { x: r.x + r.width / 2, y: r.y + r.height * 0.6 }; });
   const before = await p.evaluate(() => DinoMatch.app.game.found);
   await p.mouse.click(box.x, box.y);
