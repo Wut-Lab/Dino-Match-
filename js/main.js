@@ -25,10 +25,27 @@
   // ---- Menu background: a random location, its huts and a random herd of
   // hopping dinos, all picked afresh every time the menu opens ----
   function buildMenu() {
+    fadeMenu(false);
     const loc = DM.LOCATIONS[Math.floor(Math.random() * DM.LOCATIONS.length)];
     DM.buildScene($('menu-scene'), loc.id);
     DM.MenuDinos.start($('menu-dinos'), loc);
   }
+
+  // Playing with the background fades the menu buttons out of the way (and
+  // switches them off). Tapping a faded button just brings them back.
+  const menuCenter = document.querySelector('.menu-center');
+  function fadeMenu(on) {
+    menuCenter.classList.toggle('faded', on);
+  }
+  $('menu-dinos').addEventListener('pointerdown', () => fadeMenu(true));
+  menuCenter.addEventListener('click', (e) => {
+    if (!menuCenter.classList.contains('faded')) return;
+    e.stopPropagation();
+    e.preventDefault();
+    fadeMenu(false);
+    DM.Sound.play('tap');
+  }, { capture: true });
+
   buildMenu();
 
   // ---- Screens ----

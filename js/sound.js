@@ -71,6 +71,28 @@
       o.stop(t + dur + 0.05);
     },
 
+    noise(start, dur, highpass, vol) {
+      const c = this.ctx;
+      const t = c.currentTime + start;
+      if (!this.noiseBuf) {
+        this.noiseBuf = c.createBuffer(1, c.sampleRate * 0.5, c.sampleRate);
+        const data = this.noiseBuf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      }
+      const src = c.createBufferSource();
+      src.buffer = this.noiseBuf;
+      const f = c.createBiquadFilter();
+      f.type = 'highpass';
+      f.frequency.value = highpass;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.3);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f).connect(g).connect(this.sfxOut);
+      src.start(t);
+      src.stop(t + dur + 0.05);
+    },
+
     play(name) {
       if (!this.ctx || !this.level('sfx')) return;
       switch (name) {
@@ -93,6 +115,11 @@
           break;
         case 'golden':
           [1047, 1319, 1568, 2093, 1568, 2093, 2637].forEach((f, i) => this.note(f, i * 0.07, 0.25, 'sine', 0.1));
+          break;
+        case 'rustle':
+          // A faint, leafy rustle: two short bursts of soft noise.
+          this.noise(0, 0.16, 2400, 0.05);
+          this.noise(0.12, 0.2, 3000, 0.035);
           break;
         case 'win':
           [523, 659, 784, 659, 784, 1047].forEach((f, i) => this.note(f, i * 0.14, i === 5 ? 0.6 : 0.2, 'triangle', 0.16));

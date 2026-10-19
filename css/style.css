@@ -308,6 +308,8 @@ button { font: inherit; color: inherit; }
 .menu-center {
   position: relative;
   z-index: 2;
+  pointer-events: none; /* taps between the buttons reach the dinos behind */
+  transition: opacity 0.35s;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -315,6 +317,11 @@ button { font: inherit; color: inherit; }
   margin-bottom: 18vh;
   text-align: center;
 }
+.menu-center > * { pointer-events: auto; }
+.menu-center > .logo { pointer-events: none; }
+/* Faded while playing with the background; the logo stays */
+.menu-center.faded > :not(.logo) { opacity: 0.3; filter: saturate(0.4); transition: opacity 0.35s, filter 0.35s; }
+.menu-center > :not(.logo) { transition: opacity 0.35s, filter 0.35s; }
 
 .logo {
   font-size: clamp(52px, 13vmin, 130px);
@@ -338,8 +345,21 @@ button { font: inherit; color: inherit; }
   inset: 0;
   z-index: 1;
   overflow: hidden;
-  pointer-events: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
+.menu-dino, .menu-hut { cursor: pointer; }
+.hut-body { width: 100%; height: 100%; transform-origin: 50% 96%; }
+.hut-body.hut-shake { animation: hut-shake 0.5s ease-in-out; }
+.menu-star {
+  position: absolute;
+  z-index: 200;
+  width: var(--size);
+  aspect-ratio: 1;
+  pointer-events: none;
+  animation: star-shoot 0.9s ease-out forwards;
+}
+.menu-star svg { display: block; width: 100%; height: 100%; }
 /* left/top (set in menudinos.js) is where the feet are */
 .menu-dino {
   position: absolute;
@@ -959,6 +979,18 @@ body.dad-locked .credits-card a { pointer-events: none; color: inherit; text-dec
   100% { transform: translateX(-50%) translateY(-30%); opacity: 0; }
 }
 @keyframes drift { from { transform: translateX(-40vw); } to { transform: translateX(140vw); } }
+@keyframes hut-shake {
+  15% { transform: rotate(-3deg) scale(1.02, 0.98); }
+  35% { transform: rotate(3deg); }
+  55% { transform: rotate(-2deg); }
+  75% { transform: rotate(1.5deg); }
+  100% { transform: rotate(0); }
+}
+@keyframes star-shoot {
+  0% { transform: translate(-50%, -50%) scale(0.3) rotate(0); opacity: 1; }
+  25% { transform: translate(-50%, -150%) scale(1.15) rotate(90deg); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--drift)), -420%) scale(0.8) rotate(260deg); opacity: 0; }
+}
 @keyframes menu-hop {
   0% { transform: translateY(0) scale(1.06, 0.92); }
   45% { transform: translateY(-28%) scale(0.97, 1.04); }

@@ -3,6 +3,9 @@
  * random dinos casually hopping around (fliers glide about in the sky
  * instead). All of it is picked afresh every time the menu opens.
  *
+ * Tapping a dino makes it hop with the happy sound and shoot a star up from
+ * its head; tapping a hut gives it a little shake and a soft rustle.
+ *
  * Positions are in % of the menu screen, so it all scales with the window.
  */
 (function (DM) {
@@ -80,7 +83,7 @@
     spots.forEach(([x, y], i) => {
       const el = document.createElement('div');
       el.className = 'menu-hut';
-      el.innerHTML = kinds[i];
+      el.innerHTML = `<div class="hut-body">${kinds[i]}</div>`;
       el.style.left = `${x}%`;
       el.style.top = `${y}%`;
       el.style.setProperty('--depth', depthAt(y).toFixed(3));
@@ -92,6 +95,7 @@
 
   function start(container, location) {
     stop();
+    if (box !== container) container.addEventListener('pointerdown', onTap);
     box = container;
     GROUND = [location.horizon * 100 + 6, 90];
     buildHuts(location.id);
@@ -115,6 +119,44 @@
       m.timer = setTimeout(() => (dino.flies ? glide : hopRun)(m), rand(300, 3500));
       return m;
     });
+  }
+
+  // ---- Tapping ----
+  const STAR = '<svg viewBox="-12 -12 24 24" aria-hidden="true"><path d="M0 -10 L2.9 -3.6 L9.5 -3.1 L4.5 1.3 L5.9 8.1 L0 4.6 L-5.9 8.1 L-4.5 1.3 L-9.5 -3.1 L-2.9 -3.6Z" fill="#ffd23f" stroke="#000" stroke-width="1.6" stroke-linejoin="round"/><path d="M-2 -4 L0 -8" stroke="#fff" stroke-opacity=".7" stroke-width="1.6" stroke-linecap="round"/></svg>';
+
+  function shootStar(m) {
+    const b = box.getBoundingClientRect();
+    const r = m.el.querySelector('.dino-svg').getBoundingClientRect();
+    const star = document.createElement('div');
+    star.className = 'menu-star';
+    star.innerHTML = STAR;
+    star.style.left = `${r.left + r.width / 2 - b.left}px`;
+    star.style.top = `${r.top + r.height * 0.1 - b.top}px`;
+    star.style.setProperty('--size', `${Math.max(28, r.width * 0.32)}px`);
+    star.style.setProperty('--drift', `${rand(-30, 30).toFixed(0)}px`);
+    star.addEventListener('animationend', () => star.remove());
+    box.appendChild(star);
+  }
+
+  function bounce(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  function onTap(e) {
+    const dinoEl = e.target.closest('.menu-dino');
+    const hutEl = e.target.closest('.menu-hut');
+    if (dinoEl) {
+      const m = herd.find((h) => h.el === dinoEl);
+      if (!m) return;
+      bounce(m.body, 'menu-hop');
+      DM.Sound.play('correct');
+      shootStar(m);
+    } else if (hutEl) {
+      bounce(hutEl.firstChild, 'hut-shake');
+      DM.Sound.play('rustle');
+    }
   }
 
   function stop() {
