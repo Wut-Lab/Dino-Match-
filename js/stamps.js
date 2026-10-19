@@ -6,7 +6,7 @@
  * fly away, and adds it to the Dino Stamps collection. Each stamp has a fun
  * fact, shown and read aloud when it's tapped in the collection.
  *
- * White perforated edges, a black frame, a grey middle, a ¢ in the corner and
+ * White perforated edges, a black frame, a grey (or coloured) middle, a ¢ in the corner and
  * "Post" along the bottom. The silhouette is made from the dino's own art
  * (js/dino-art.js), so any dino can have a stamp.
  */
@@ -14,8 +14,13 @@
   'use strict';
 
   // To add a stamp: give it an id, the dino it shows, and its fun fact.
+  // `colors` is optional: [light middle, dark edge, silhouette] (grey if left out).
   const STAMPS = [
     { id: 'pterodactyl', dino: 'pterodactyl', fact: 'Birds are related to dinosaurs!' },
+    {
+      id: 'ankylosaurus', dino: 'ankylosaurus', colors: ['#e4f7a6', '#9ccb2e', '#33461a'],
+      fact: 'Dinosaur fossils have been found on all seven continents.',
+    },
   ];
   STAMPS.forEach((s) => { s.fullName = `${DM.dinoById(s.dino).name} Stamp`; });
 
@@ -44,11 +49,12 @@
     return `M0 0${edge(0, 0, W, 0)}${edge(W, 0, W, H)}${edge(W, H, 0, H)}${edge(0, H, 0, 0)}Z`;
   })();
 
-  const INK = '#3d434a'; // silhouette colour
+  const GREY = ['#c3c8cd', '#8f969d', '#3d434a']; // default: light, dark, silhouette
 
   let uid = 0;
 
-  DM.stampSVG = (dino) => {
+  DM.stampSVG = (dino, colors = GREY) => {
+    const [light, dark, ink] = colors;
     const art = DM.DINO_ART[dino.id];
     const n = ++uid;
     // Picture area inside the black frame.
@@ -58,14 +64,14 @@
     const text = 'font-family="Fredoka, sans-serif" font-weight="700" fill="#22272c" stroke="#fff" stroke-opacity=".55" stroke-width="2" paint-order="stroke"';
     return `<svg class="stamp-svg stamp-${dino.id}" viewBox="-3 -3 ${W + 6} ${H + 6}" aria-hidden="true">` +
       `<defs><radialGradient id="sg${n}" cx="50%" cy="42%" r="70%">` +
-      `<stop offset="0" stop-color="#c3c8cd"/><stop offset="1" stop-color="#8f969d"/></radialGradient>` +
+      `<stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></radialGradient>` +
       // solid silhouette: the art's shape filled with one flat colour
-      `<filter id="ss${n}"><feFlood flood-color="${INK}"/><feComposite in2="SourceAlpha" operator="in"/></filter>` +
+      `<filter id="ss${n}"><feFlood flood-color="${ink}"/><feComposite in2="SourceAlpha" operator="in"/></filter>` +
       `<filter id="sd${n}" x="-10%" y="-10%" width="125%" height="125%"><feDropShadow dx="0.8" dy="1.6" stdDeviation="1.2" flood-opacity=".25"/></filter>` +
       `<clipPath id="sk${n}"><rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="3"/></clipPath></defs>` +
       // paper with a soft shadow so the white edge shows on light backgrounds
       `<path d="${PAPER}" fill="#fff" stroke="#d2d2d2" stroke-width="0.7" filter="url(#sd${n})"/>` +
-      // grey picture with a pale "sun" behind the dino
+      // coloured picture with a pale "sun" behind the dino
       `<g clip-path="url(#sk${n})"><rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" fill="url(#sg${n})"/>` +
       `<circle cx="${W / 2}" cy="${fy + fh * 0.44}" r="${fw * 0.36}" fill="#fff" fill-opacity=".28"/>` +
       `<path d="M${fx} ${fy + fh * 0.84} Q${W * 0.3} ${fy + fh * 0.76} ${W / 2} ${fy + fh * 0.84} T${fx + fw} ${fy + fh * 0.84} V${fy + fh} H${fx}Z" fill="#000" fill-opacity=".12"/>` +
@@ -78,7 +84,7 @@
       `</svg>`;
   };
 
-  DM.stampArt = (stamp) => DM.stampSVG(DM.dinoById(stamp.dino));
+  DM.stampArt = (stamp) => DM.stampSVG(DM.dinoById(stamp.dino), stamp.colors);
 
   // ---- A small stamp stuck on something in the scene ----
 
