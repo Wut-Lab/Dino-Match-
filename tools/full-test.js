@@ -80,7 +80,7 @@ async function playRound(p) {
   await p.click('#btn-credits');
   check('Credits: opens', await visible(p, '#credits'));
   const credits = await p.locator('#credits-list li').count();
-  check('Credits: 13 dinos listed', credits === 13, `${credits}`);
+  check('Credits: 16 dinos listed', credits === 16, `${credits}`);
   const links = await p.$$eval('#credits-list a', (as) => as.every((a) => a.href.startsWith('https://openclipart.org/detail/') && a.target === '_blank'));
   check('Credits: every artist link goes to Openclipart in a new tab', links);
   await p.screenshot({ path: `${OUT}/02-credits.png` });
@@ -94,8 +94,8 @@ async function playRound(p) {
   check('Collections: opens', await visible(p, '#collections'));
   const tabs = await p.$$eval('#coll-tabs [role=tab]', (ts) => ts.map((t) => t.textContent));
   check('Collections: 3 tabs named right', JSON.stringify(tabs) === JSON.stringify(['Golden Dinos', 'Dino-Stars', 'Collection 3']), tabs.join(', '));
-  check('Golden tab: 13 mystery cards + tip', (await p.locator('#coll-panel .gold-pic.mystery').count()) === 13 && (await p.locator('#coll-panel .gold-tip').count()) === 1);
-  check('Golden tab: "0 of 13 found"', (await p.textContent('#coll-panel .gold-count')).includes('0 of 13'));
+  check('Golden tab: 16 mystery cards + tip', (await p.locator('#coll-panel .gold-pic.mystery').count()) === 16 && (await p.locator('#coll-panel .gold-tip').count()) === 1);
+  check('Golden tab: "0 of 16 found"', (await p.textContent('#coll-panel .gold-count')).includes('0 of 16'));
   check('Golden tab: Total Golden Dinos Found 0', (await p.textContent('#coll-panel .gold-total')).includes('0'));
   await p.keyboard.press('ArrowRight');
   check('Arrow key moves to Dino-Stars tab', (await p.getAttribute('#coll-tab-stars', 'aria-selected')) === 'true');
@@ -247,7 +247,7 @@ async function playRound(p) {
   await p.waitForSelector('#win:not(.hidden)', { timeout: 20000 });
   await p.click('#btn-menu');
   await p.click('#btn-collections'); await p.click('#coll-tab-golden');
-  check('Golden tab: shows 1 found card + "1 of 13"', (await p.locator('#coll-panel .gold-card.found').count()) === 1 && (await p.textContent('#coll-panel .gold-count')).includes('1 of 13'));
+  check('Golden tab: shows 1 found card + "1 of 16"', (await p.locator('#coll-panel .gold-card.found').count()) === 1 && (await p.textContent('#coll-panel .gold-count')).includes('1 of 16'));
   check('Golden tab: tip hidden once one is found', (await p.locator('#coll-panel .gold-tip').count()) === 0);
   check('Golden tab: repeat find adds to Total (now 2)', (await p.textContent('#coll-panel .gold-total')).includes('2') && (await save(p)).goldCaught === 2);
   await p.keyboard.press('Escape');

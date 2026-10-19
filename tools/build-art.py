@@ -219,6 +219,63 @@ def feathers(color, tip):
     return ''.join(out)
 
 
+def frill_spikes(cx, cy, r, color, start=200, end=340, n=6, length=62, width=15):
+    """Styracosaurus: long spikes fanned around the top of the frill (drawn behind it)."""
+    import math
+    out = []
+    for i in range(n):
+        deg = start + (end - start) * i / (n - 1)
+        a = math.radians(deg)
+        x, y = cx + math.cos(a) * r, cy + math.sin(a) * r
+        L, W = length, width
+        out.append(
+            f'<g transform="translate({x:.1f} {y:.1f}) rotate({deg + 90:.1f})">'
+            f'<path d="M{-W} 0 Q{-W * 0.6} {-L * 0.6} 0 {-L} Q{W * 0.6} {-L * 0.6} {W} 0Z" style="fill:{color};stroke:{INK};stroke-width:4;stroke-linejoin:round"/>'
+            f'<path d="M0 {-L} Q{W * 0.6} {-L * 0.6} {W} 0 L{W * 0.3} 0 Q{W * 0.3} {-L * 0.5} 0 {-L}Z" style="{SHADE}"/>'
+            f'</g>')
+    return ''.join(out)
+
+
+def bull_horns(color):
+    """Carnotaurus: thick horns curving out and up from above the eyes (drawn behind the head)."""
+    out = []
+    for s in (-1, 1):
+        cx = 123 + s * 50
+        d = (f'M{cx - s * 22} 44 C{cx + s * 26} 52 {cx + s * 58} 22 {cx + s * 58} -30 '
+             f'C{cx + s * 36} -4 {cx + s * 16} 6 {cx - s * 18} 2Z')
+        sh = (f'M{cx + s * 58} -30 C{cx + s * 58} 22 {cx + s * 26} 52 {cx - s * 22} 44 '
+              f'L{cx - s * 20} 34 C{cx + s * 20} 38 {cx + s * 48} 14 {cx + s * 58} -30Z')
+        out.append(f'<path d="{d}" style="fill:{color};stroke:{INK};stroke-width:4;stroke-linejoin:round"/>'
+                   f'<path d="{sh}" style="{SHADE}"/>')
+    return ''.join(out)
+
+
+WATER, WATER_EDGE = '#4fb3ff', '#1f6fb0'  # kept blue on golden dinos (see KEEP in js/dinos.js)
+
+
+def flippers(color):
+    """Plesiosaurus: a paddle-shaped flipper either side of the body (drawn behind it)."""
+    out = []
+    for s, x in ((-1, 40), (1, 144)):
+        out.append(
+            f'<g transform="translate({x} 424) rotate({s * -14})">'
+            f'<path d="M0 -24 Q{s * 80} -38 {s * 118} 6 Q{s * 78} 30 0 24Z" style="fill:{color};stroke:{INK};stroke-width:4;stroke-linejoin:round"/>'
+            f'<path d="M{s * 10} 8 Q{s * 55} 16 {s * 88} 6" style="fill:none;stroke:#000;stroke-opacity:.25;stroke-width:5;stroke-linecap:round"/>'
+            f'</g>')
+    return ''.join(out)
+
+
+def water(y=436, x0=-152, x1=356, n=16):
+    """Plesiosaurus: wavy water over the bottom half of the body. It spans exactly the
+    square the game fits this viewBox into (the art isn't clipped), so it fills the card."""
+    step = (x1 - x0) / n
+    waves = ''.join(f'Q{x0 + step * (i + 0.5):.1f} {y - 14} {x0 + step * (i + 1):.1f} {y} ' for i in range(n))
+    return (f'<path d="M{x0} {y} {waves}L{x1} {y + 72} L{x0} {y + 72}Z" '
+            f'style="fill:{WATER};fill-opacity:.85;stroke:{WATER_EDGE};stroke-width:4;stroke-linejoin:round"/>'
+            f'<path d="M-30 466 q14 -8 28 0 M150 478 q14 -8 28 0 M60 494 q14 -8 28 0 M230 462 q14 -8 28 0" '
+            f'style="fill:none;stroke:#fff;stroke-opacity:.7;stroke-width:4;stroke-linecap:round"/>')
+
+
 DINOS = [
     {
         'id': 'trex', 'src': 'trex-23513.svg',
@@ -338,6 +395,42 @@ DINOS = [
         'remove': [r'^shadow$'],
         'viewBox': '0 0 723 445',
         'after': feathers('#3ec1e6', '#1f6fb0') + cheeks((322, 206), (400, 206), rx=12, ry=7),
+    },
+    {
+        'id': 'styracosaurus', 'src': 'triceratops-23511.svg',
+        'eyes': [r'^g278$', r'^g282$'],
+        'colors': {'#698000': '#4cc9f0'},
+        'remove': [r'^g290$', r'^g294$'],  # brow horns (and the little nose horn)...
+        'viewBox': '-30 -62 320 344',
+        'before': frill_spikes(113, 100, 95, '#ff9f43'),  # ...for a crown of frill spikes
+        'after': horn(108, 152, 0, '#fff3c4', 58) + cheeks((60, 146), (154, 146)),  # and one big nose horn
+    },
+    {
+        'id': 'plesiosaurus', 'src': 'brontosaurus-23508.svg',
+        'eyes': [r'^g255$', r'^g259$'],
+        'colors': {'#698000': '#ff8a65'},
+        'remove': [r'^g268$'],  # legs: it swims instead
+        'viewBox': '-90 0 384 508',
+        'before': flippers('#ff8a65'),
+        'after': cheeks((48, 98), (141, 98), rx=12, ry=7) + water(),
+    },
+    {
+        'id': 'carnotaurus', 'src': 'spinosaurus-356257.svg',
+        'eyes': [r'^g300$', r'^g306$'],
+        'colors': {'#698000': '#b23a48'},
+        'remove': [r'^g83$'],  # the sail
+        # Slimmed like the Spinosaurus.
+        'wrap': {
+            'g241': 'translate(123 0) scale(0.78 1) translate(-123 0)',
+            'g265': 'translate(123 0) scale(0.84 1) translate(-123 0)',
+            'g247': 'translate(14 0)', 'g256': 'translate(-14 0)',
+            'layer1_1_': 'translate(-26 0)',
+        },
+        'insert_after': {'g241': spots('#8c2235', [(x, y, 6) for x in (72, 174) for y in (190, 222, 254, 286)]
+                                       + [(x, y, 5) for x in (96, 150) for y in (176, 300)])},  # bumpy scales
+        'viewBox': '0 -40 315 403',
+        'before': bull_horns('#fff3c4'),
+        'after': cheeks((84, 100), (161, 100)),
     },
 ]
 
