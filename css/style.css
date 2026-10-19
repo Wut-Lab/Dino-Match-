@@ -609,7 +609,6 @@ button { font: inherit; color: inherit; }
   touch-action: none;
 }
 .dstar.caught { cursor: default; }
-.dstamp { aspect-ratio: 106 / 130; }
 .dstar-body, .dstar-spin { width: 100%; height: 100%; }
 .star-svg, .stamp-svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .star-glow .dstar-spin { animation: star-pulse 1.4s ease-in-out infinite alternate; }
@@ -617,6 +616,25 @@ button { font: inherit; color: inherit; }
 /* Stars fly high, so their bubble goes underneath (clear of the banner) */
 .dstar .say { bottom: auto; top: 100%; margin-top: 10px; }
 .dstar .say::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--ink); }
+
+/* Dino Stamps: a small stamp stuck on the scenery (see StuckStamp in stamps.js).
+   It peels up a little now and then so it catches the eye. */
+.stuck-stamp {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--tilt));
+  cursor: pointer;
+  touch-action: none;
+  pointer-events: auto;
+}
+.stuck-stamp .stamp-svg { transform-origin: 50% 0; animation: stamp-peel 5s ease-in-out infinite; }
+.stuck-stamp.star-glow .stamp-svg { animation: stamp-peel 5s ease-in-out infinite, star-pulse 1.4s ease-in-out infinite alternate; }
+.stuck-stamp .gold-sparkles { inset: -25%; }
+/* Caught: pops up big, holds so everyone can see it, then flies away */
+.stamp-fly { position: absolute; z-index: 5600; transform: translate(-50%, -50%); pointer-events: none; }
+.stamp-fly-art { animation: stamp-pop 2.4s ease-in-out forwards; }
+.stamp-fly .say { bottom: auto; top: 100%; margin-top: 10px; animation: say-pop 0.4s cubic-bezier(.3, 1.8, .5, 1), fade-out 0.3s 1.7s forwards; }
+.stamp-fly .say::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--ink); }
+.gold-banner.banner-low { top: auto; bottom: 8%; }
 
 /* Speech bubble ("WOW!") that rides along with a dino */
 .say {
@@ -977,6 +995,14 @@ body.dad-locked .credits-card a { pointer-events: none; color: inherit; text-dec
   to { filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 18px var(--star)); }
 }
 @keyframes star-spin { 0% { transform: scale(1) rotate(0); } 40% { transform: scale(1.35) rotate(200deg); } 100% { transform: scale(1.15) rotate(360deg); } }
+@keyframes stamp-peel { 0%, 82%, 100% { transform: rotate(0); } 88% { transform: rotate(-7deg) scaleY(0.96); } 94% { transform: rotate(4deg); } }
+@keyframes stamp-pop {
+  0% { transform: translate(var(--dx), var(--dy)) scale(var(--from)) rotate(var(--tilt)); }
+  22% { transform: scale(1.1) rotate(-4deg); }
+  30%, 70% { transform: scale(1) rotate(0); }
+  100% { transform: translate(0, -160vh) scale(0.7) rotate(30deg); }
+}
+@keyframes fade-out { to { opacity: 0; } }
 @keyframes twinkle { 0%, 100% { transform: scale(0.3) rotate(0deg); opacity: 0; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
 @keyframes say-pop { from { transform: translateX(-50%) scale(0.2); } to { transform: translateX(-50%) scale(1); } }
 @keyframes banner {

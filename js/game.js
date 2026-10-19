@@ -27,9 +27,7 @@
   const STAR_CHANCE = 0.33; // chance a Dino-Star floats across the sky in a round
   const STAR_DELAY = [4, 14]; // seconds into the round before it shows up
   const STAR_CROSS_TIME = 11; // seconds to float from one side to the other
-  const STAMP_CHANCE = 0.33; // chance a Dino Stamp floats across the sky in a round
-  const STAMP_DELAY = [6, 18];
-  const STAMP_CROSS_TIME = 13;
+  const STAMP_CHANCE = 0.33; // chance a Dino Stamp is stuck on something in a round
 
   // Collectibles that float across the sky (see Flyer). Each kind says how to
   // draw it, how big it is, and which collection it belongs to.
@@ -38,11 +36,6 @@
       list: () => DM.STARS, svg: (it) => DM.starSVG(it), glow: (it) => it.color,
       size: 0.75, ratio: 1, rock: 12, cross: STAR_CROSS_TIME,
       isFound: 'isStarFound', onCaught: 'onStarCaught',
-    },
-    stamp: {
-      list: () => DM.STAMPS, svg: (it) => DM.stampArt(it), glow: () => '#fff3a0', cls: 'dstamp',
-      size: 0.62, ratio: 130 / 106, rock: 8, cross: STAMP_CROSS_TIME,
-      isFound: 'isStampFound', onCaught: 'onStampCaught',
     },
   };
 
@@ -53,6 +46,24 @@
     b.textContent = text;
     el.appendChild(b);
   }
+
+  // Shared "you found something special" moment for golden dinos, Dino-Stars
+  // and Dino Stamps: NEW! the first time (plus a banner), WOW! after that.
+  // Also used by the main menu (stamps), so it lives outside the Game.
+  DM.celebrate = (layer, el, isNew, name, bannerClass = '') => {
+    say(el, isNew ? 'NEW!' : 'WOW!');
+    setTimeout(() => DM.Sound.play('golden'), 250);
+    if (isNew) {
+      const b = document.createElement('div');
+      b.className = `loc-banner gold-banner ${bannerClass}`;
+      b.textContent = `🌟 ${name} collected!`;
+      b.addEventListener('animationend', () => b.remove());
+      layer.appendChild(b);
+      DM.Sound.speak(`Wow! You found ${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}!`);
+    } else {
+      DM.Sound.speak('Wow!');
+    }
+  };
 
   class Actor {
     // gold: null (normal), 'glow' (golden, not collected yet) or 'plain'
@@ -176,9 +187,8 @@
     }
   }
 
-  // A Dino-Star or Dino Stamp bobbing across the sky on a wavy path. glow:
-  // true if it isn't in the collection yet. Once tapped it spins, then zooms
-  // up and away.
+  // A Dino-Star bobbing across the sky on a wavy path. glow: true if it isn't
+  // in the collection yet. Once tapped it spins, then zooms up and away.
   class Flyer {
     constructor(kind, item, game, glow) {
       const k = FLYERS[kind];
@@ -205,7 +215,7 @@
       this.y = this.baseY;
 
       const el = document.createElement('div');
-      el.className = 'dstar' + (k.cls ? ` ${k.cls}` : '') + (glow ? ' star-glow' : '');
+      el.className = 'dstar' + (glow ? ' star-glow' : '');
       el.style.width = `${this.s}px`;
       el.style.setProperty('--star', k.glow(item));
       el.style.setProperty('--blink-delay', `${-rand(0, 4).toFixed(2)}s`);
@@ -272,8 +282,7 @@
       this.goldenChance = GOLDEN_CHANCE;
       this.starChance = STAR_CHANCE;
       this.stampChance = STAMP_CHANCE;
-      this.star = null;  // the Flyer in the sky right now, if any
-      this.stamp = null;
+      this.star = null; // the Flyer in the sky right now, if any
       this.loop = this.loop.bind(this);
       window.addEventListener('resize', () => this.running && this.measure());
       this.card.addEventListener('pointerdown', () => this.target && this.announce());
@@ -401,14 +410,6 @@
       this.field.appendChild(el);
     }
 
-    goldBanner(text) {
-      const el = document.createElement('div');
-      el.className = 'loc-banner gold-banner';
-      el.textContent = text;
-      el.addEventListener('animationend', () => el.remove());
-      this.field.appendChild(el);
-    }
-
     // ---- Round-start banner ----
 
     showBanner() {
@@ -450,13 +451,35 @@
       this.scheduleFog(true);
       this.later(() => this.nextTarget(), 600);
       if (Math.random() < this.starChance) this.later(() => this.launchStar(), rand(STAR_DELAY[0], STAR_DELAY[1]) * 1000);
-      if (Math.random() < this.stampChance) this.later(() => this.launchStamp(), rand(STAMP_DELAY[0], STAMP_DELAY[1]) * 1000);
+      if (Math.random() < this.stampChance) this.later(() => this.placeStamp(), 800);
     }
 
-    // ---- Dino-Stars and Dino Stamps ----
+    // ---- Dino Stamps ----
+
+    // Stick a small stamp on something in the scenery: a tree, the sun, a
+    // hill, a rock or the volcano (whatever this location has).
+    placeStamp() {
+      if (!this.running || this.field.querySelector('.stuck-stamp')) return null;
+      const anchors = [
+        ...this.trees.map((t) => t.el),
+        ...this.scene.querySelectorAll('.sun, .hill, .far-pine, .volcano, .rock'),
+      ];
+      return DM.StuckStamp.stick(anchors, {
+        layer: this.field,
+        size: Math.max(30, this.size.w * 0.3),
+        // On a tree it's part of the tree (dinos in front still cover it);
+        // anything else is in the background, behind all the dinos.
+        zFor: (a) => (a.classList.contains('tree') ? a.style.zIndex : 9),
+        avoid: [],
+        isFound: this.isStampFound,
+        onCaught: this.onStampCaught,
+        canTap: () => this.running && !this.paused,
+      });
+    }
+
+    // ---- Dino-Stars ----
 
     launchStar() { this.launch('star'); }
-    launchStamp() { this.launch('stamp'); }
 
     launch(kind) {
       if (!this.running || this[kind]) return;
@@ -476,17 +499,8 @@
       this.treasure(f.el, f.glow, f.item.fullName);
     }
 
-    // Shared "you found something special" moment for golden dinos and
-    // Dino-Stars: NEW! the first time (plus a banner), WOW! after that.
     treasure(el, isNew, name) {
-      say(el, isNew ? 'NEW!' : 'WOW!');
-      this.later(() => DM.Sound.play('golden'), 250);
-      if (isNew) {
-        this.goldBanner(`🌟 ${name} collected!`);
-        DM.Sound.speak(`Wow! You found ${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}!`);
-      } else {
-        DM.Sound.speak('Wow!');
-      }
+      DM.celebrate(this.field, el, isNew, name);
     }
 
     // Freeze the round (used while the All Sounds menu is open).
@@ -519,8 +533,8 @@
       this.actors.forEach((a) => a.el.remove());
       this.actors = [];
       this.target = null;
-      this.star = this.stamp = null;
-      this.field.querySelectorAll('.prop, .fog, .loc-banner, .dstar').forEach((el) => el.remove());
+      this.star = null;
+      this.field.querySelectorAll('.prop, .fog, .loc-banner, .dstar, .stuck-stamp, .stamp-fly').forEach((el) => el.remove());
       this.trees = [];
     }
 
@@ -557,12 +571,10 @@
       for (const a of this.actors) a.update(dt, this.bounds, this.size, this.actors);
       this.separate();
       for (const a of this.actors) a.render(this.size);
-      for (const kind of ['star', 'stamp']) {
-        const f = this[kind];
-        if (!f) continue;
-        f.update(dt);
-        f.render();
-        if (f.gone) { f.el.remove(); this[kind] = null; }
+      if (this.star) {
+        this.star.update(dt);
+        this.star.render();
+        if (this.star.gone) { this.star.el.remove(); this.star = null; }
       }
 
       const gone = this.actors.filter((a) => a.gone);
