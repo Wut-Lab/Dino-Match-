@@ -72,9 +72,10 @@
         `<path d="M28 50 Q34 40 44 38" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="5" stroke-linecap="round"/>`),
       // Hide teepee held up by bones
       svg(
-        `<path d="M48 22 L36 2 M72 22 L84 2 M60 20 V0" stroke="#000" stroke-width="9" stroke-linecap="round"/>` +
-        `<path d="M48 22 L36 2 M72 22 L84 2 M60 20 V0" stroke="#fff6e0" stroke-width="5" stroke-linecap="round"/>` +
-        [[36, 2], [84, 2], [60, 0]].map(([x, y]) => `<circle cx="${x - 3}" cy="${y}" r="4" fill="#fff6e0" stroke="#000" stroke-width="2"/><circle cx="${x + 3}" cy="${y}" r="4" fill="#fff6e0" stroke="#000" stroke-width="2"/>`).join('') +
+        // Bone poles start inside the cone (hidden behind the hide) and poke out of its top.
+        `<path d="M60 44 L38 2 M60 44 L82 2 M60 44 V-2" stroke="#000" stroke-width="9" stroke-linecap="round"/>` +
+        `<path d="M60 44 L38 2 M60 44 L82 2 M60 44 V-2" stroke="#fff6e0" stroke-width="5" stroke-linecap="round"/>` +
+        [[38, 2], [82, 2], [60, -2]].map(([x, y]) => `<circle cx="${x - 3}" cy="${y}" r="4" fill="#fff6e0" stroke="#000" stroke-width="2"/><circle cx="${x + 3}" cy="${y}" r="4" fill="#fff6e0" stroke="#000" stroke-width="2"/>`).join('') +
         `<path d="M12 106 L60 18 L108 106Z" fill="#d9a76a" ${K}/>` +
         `<path d="M60 18 L108 106 H82Z" ${SHADE}/>` +
         `<path d="M26 84 L34 76 L42 84 L50 76 L58 84 L66 76 L74 84 L82 76 L90 84 L96 78" fill="none" stroke="#b5463a" stroke-width="4" stroke-linejoin="round"/>` +
