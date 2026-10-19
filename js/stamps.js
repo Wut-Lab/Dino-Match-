@@ -15,14 +15,40 @@
 
   // To add a stamp: give it an id, the dino it shows, and its fun fact.
   // `colors` is optional: [light middle, dark edge, silhouette] (grey if left out).
+  // `art` is optional: a silhouette drawn just for the stamp (see SIDE_ART below);
+  // without it, the dino's game art is used.
   const STAMPS = [
     { id: 'pterodactyl', dino: 'pterodactyl', fact: 'Birds are related to dinosaurs!' },
     {
-      id: 'ankylosaurus', dino: 'ankylosaurus', colors: ['#e4f7a6', '#9ccb2e', '#33461a'],
+      id: 'ankylosaurus', dino: 'ankylosaurus', colors: ['#e4f7a6', '#9ccb2e', '#33461a'], art: 'ankylosaurus',
       fact: 'Dinosaur fossils have been found on all seven continents.',
     },
   ];
   STAMPS.forEach((s) => { s.fullName = `${DM.dinoById(s.dino).name} Stamp`; });
+
+  // Side-on silhouettes for dinos whose game art faces forward (which makes a
+  // blobby silhouette). Only the outline matters: it's filled with one colour.
+  const SIDE_ART = {
+    // Low armoured dome, stubby legs, small head on the right, club tail on the left.
+    ankylosaurus: {
+      viewBox: '0 0 200 110',
+      svg: '<path d="M40 74 C40 40 70 25 100 25 C132 25 158 40 160 74Z"/>' +
+        // bumps along the back
+        '<circle cx="62" cy="40" r="7"/><circle cx="80" cy="30" r="7"/><circle cx="100" cy="26" r="7"/>' +
+        '<circle cx="120" cy="30" r="7"/><circle cx="138" cy="40" r="7"/>' +
+        // spikes sticking out of the shell's edge
+        '<path d="M36 62 L22 70 L40 72Z M46 70 L36 84 L56 76Z M154 70 L164 84 L146 76Z"/>' +
+        // belly and legs
+        '<rect x="52" y="62" width="100" height="18" rx="8"/>' +
+        '<rect x="56" y="70" width="15" height="28" rx="5"/><rect x="80" y="70" width="13" height="25" rx="5"/>' +
+        '<rect x="112" y="70" width="13" height="25" rx="5"/><rect x="132" y="70" width="15" height="28" rx="5"/>' +
+        // neck, head, and little horns at the back of the head
+        '<path d="M148 50 Q164 52 170 60 L162 76 Q152 74 146 70Z"/>' +
+        '<ellipse cx="176" cy="66" rx="16" ry="11"/><path d="M164 58 L160 46 L172 56Z"/>' +
+        // tail and its bony club
+        '<path d="M46 54 Q28 56 16 60 L16 66 Q30 68 48 72Z"/><ellipse cx="13" cy="63" rx="11" ry="9"/>',
+    },
+  };
 
   DM.STAMPS = STAMPS;
   DM.stampById = (id) => STAMPS.find((s) => s.id === id);
@@ -53,9 +79,8 @@
 
   let uid = 0;
 
-  DM.stampSVG = (dino, colors = GREY) => {
+  DM.stampSVG = (dino, colors = GREY, art = DM.DINO_ART[dino.id]) => {
     const [light, dark, ink] = colors;
-    const art = DM.DINO_ART[dino.id];
     const n = ++uid;
     // Picture area inside the black frame.
     const fx = 11, fy = 11, fw = W - 22, fh = H - 22;
@@ -84,7 +109,7 @@
       `</svg>`;
   };
 
-  DM.stampArt = (stamp) => DM.stampSVG(DM.dinoById(stamp.dino), stamp.colors);
+  DM.stampArt = (stamp) => DM.stampSVG(DM.dinoById(stamp.dino), stamp.colors, SIDE_ART[stamp.art]);
 
   // ---- A small stamp stuck on something in the scene ----
 
