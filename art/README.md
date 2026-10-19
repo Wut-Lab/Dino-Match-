@@ -23,9 +23,9 @@ remixes them into `js/dino-art.js`, and marks each dino's eyes so they can blink
 | Dilophosaurus | `trex-23513.svg` | (remix) | T-Rex above, plus new parts | Twin head crests |
 | Pachycephalosaurus | `trex-23513.svg` | (remix) | T-Rex above, plus new parts | Fangs removed, domed head with knobs |
 | Archaeopteryx | `pterodactyl-28420.svg` | (remix) | Pterodactyl above, plus new parts | Feathered wings and tail |
-| Styracosaurus | `triceratops-23511.svg` | (remix) | Triceratops above, plus new parts | Brow horns removed, frill spikes and a big nose horn |
-| Plesiosaurus | `brontosaurus-23508.svg` | (remix) | Brontosaurus above, plus new parts | Legs removed, flippers and water |
+| Styracosaurus | `triceratops-23511.svg` | (remix) | Triceratops above, plus new parts | Brow horns removed, frill spikes, bigger nose horn |
 | Carnotaurus | `spinosaurus-356257.svg` | (remix) | Spinosaurus above, plus new parts | Sail removed, slimmed, bull horns, bumpy scales |
+| Therizinosaurus | `velociraptor-355256.svg` | (remix) | Velociraptor above, plus new parts | Feather ruff and crest, giant claws, new feet |
 
 The CC0 licence on every page above was checked on 2026-10-18. Each page also
 records its own history: all of these were built from other Openclipart CC0 art.

@@ -6,7 +6,7 @@ A picture of a dinosaur shows up on the left, and 8 dinosaurs (picked at random 
 
 ## Features
 
-- 16 chubby cartoon dinos, each in its own colour: T-Rex, Triceratops, Stegosaurus, Brontosaurus, Pterodactyl, Ankylosaurus, Parasaurolophus, Spinosaurus, Velociraptor, Allosaurus, Dilophosaurus, Pachycephalosaurus, Archaeopteryx, Styracosaurus, Plesiosaurus and Carnotaurus. Each round uses 8 of them at random. The art is public domain (CC0) from Openclipart; see [`art/README.md`](art/README.md)
+- 16 chubby cartoon dinos, each in its own colour: T-Rex, Triceratops, Stegosaurus, Brontosaurus, Pterodactyl, Ankylosaurus, Parasaurolophus, Spinosaurus, Velociraptor, Allosaurus, Dilophosaurus, Pachycephalosaurus, Archaeopteryx, Styracosaurus, Carnotaurus and Therizinosaurus. Each round uses 8 of them at random. The art is public domain (CC0) from Openclipart; see [`art/README.md`](art/README.md)
 - Three locations, picked at random each round:
   - **Sunny Meadow**
   - **Pine Forest**: dinos can walk behind the trees, but never stop where they're hidden

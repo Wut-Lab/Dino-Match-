@@ -25,8 +25,8 @@
     { id: 'pachycephalosaurus', name: 'Pachycephalosaurus', credit: { artist: 'StudioFibonacci', url: OC + '23513', note: 'remix of the T-Rex' } },
     { id: 'archaeopteryx', name: 'Archaeopteryx', flies: true, scale: 1.3, credit: { artist: 'StudioFibonacci', url: OC + '28420', note: 'remix of the Pterodactyl' } },
     { id: 'styracosaurus', name: 'Styracosaurus', credit: { artist: 'StudioFibonacci', url: OC + '23511', note: 'remix of the Triceratops' } },
-    { id: 'plesiosaurus', name: 'Plesiosaurus', credit: { artist: 'StudioFibonacci', url: OC + '23508', note: 'remix of the Brontosaurus' } },
     { id: 'carnotaurus', name: 'Carnotaurus', credit: { artist: 'AreYouPrepared', url: OC + '356257', note: 'remix of the Spinosaurus' } },
+    { id: 'therizinosaurus', name: 'Therizinosaurus', credit: { artist: 'AreYouPrepared', url: OC + '355256', note: 'remix of the Velociraptor' } },
   ];
 
   DM.DINOS = DINOS;
@@ -35,8 +35,8 @@
   // ---- Golden versions ----
   // Made on the fly from the normal art: every colour becomes a shade of gold
   // with the same lightness, so markings and shading survive. Black outlines,
-  // white eyes/teeth/toes, the pink cheeks and the Plesiosaurus's water are left alone.
-  const KEEP = /^#(000|000000|fff|ffffff|ff6f9f|4fb3ff|1f6fb0)$/i; // last two: the Plesiosaurus's water
+  // white eyes/teeth/toes, the pink cheeks and water are left alone.
+  const KEEP = /^#(000|000000|fff|ffffff|ff6f9f|4fb3ff|1f6fb0)$/i; // last two: water (for the Plesiosaurus, saved for later)
   const RAMP = [[0, [110, 64, 0]], [0.45, [205, 140, 10]], [0.72, [255, 200, 40]], [1, [255, 240, 160]]];
   function goldHex(hex) {
     if (KEEP.test(hex)) return hex;

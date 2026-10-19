@@ -219,14 +219,15 @@ def feathers(color, tip):
     return ''.join(out)
 
 
-def frill_spikes(cx, cy, r, color, start=200, end=340, n=6, length=62, width=15):
-    """Styracosaurus: long spikes fanned around the top of the frill (drawn behind it)."""
+def frill_spikes(cx, cy, rx, ry, color, start=200, end=340, n=6, length=80, width=20):
+    """Styracosaurus: long spikes fanned around the top of the (oval) frill, drawn
+    behind it with their bases well inside its edge so they grow out of it."""
     import math
     out = []
     for i in range(n):
         deg = start + (end - start) * i / (n - 1)
         a = math.radians(deg)
-        x, y = cx + math.cos(a) * r, cy + math.sin(a) * r
+        x, y = cx + math.cos(a) * rx, cy + math.sin(a) * ry
         L, W = length, width
         out.append(
             f'<g transform="translate({x:.1f} {y:.1f}) rotate({deg + 90:.1f})">'
@@ -248,6 +249,37 @@ def bull_horns(color):
         out.append(f'<path d="{d}" style="fill:{color};stroke:{INK};stroke-width:4;stroke-linejoin:round"/>'
                    f'<path d="{sh}" style="{SHADE}"/>')
     return ''.join(out)
+
+
+def feather_ruff(cx, cy, r, color, tip, start=165, end=375, n=11, length=78, width=24):
+    """Therizinosaurus: a fluffy ring of wide feathers around the body (drawn behind it)."""
+    import math
+    out = []
+    for i in range(n):
+        deg = start + (end - start) * i / (n - 1)
+        a = math.radians(deg)
+        x, y = cx + math.cos(a) * (r - 30), cy + math.sin(a) * (r - 30)
+        L, W = length, width
+        out.append(
+            f'<g transform="translate({x:.1f} {y:.1f}) rotate({deg:.1f})">'
+            f'<path d="M0 {-W} Q{L * 0.65} {-W * 1.1} {L} 0 Q{L * 0.65} {W * 1.1} 0 {W}Z" style="fill:{color};stroke:{INK};stroke-width:3.5;stroke-linejoin:round"/>'
+            f'<path d="M{L * 0.62} {-W * 0.95} Q{L * 0.9} {-W * 0.5} {L} 0 Q{L * 0.9} {W * 0.5} {L * 0.62} {W * 0.95} Q{L * 0.7} 0 {L * 0.62} {-W * 0.95}Z" style="fill:{tip}"/>'
+            f'<path d="M6 0 L{L - 8} 0" style="fill:none;stroke:#000;stroke-opacity:.25;stroke-width:2.5;stroke-linecap:round"/>'
+            f'</g>')
+    return ''.join(out)
+
+
+def big_claws(x, y, side):
+    """Therizinosaurus: three long white sickle claws fanning out from a hand (side -1 = left, 1 = right)."""
+    out = []
+    for ang, L in ((30, 70), (52, 84), (74, 70)):
+        W = 10
+        out.append(
+            f'<g transform="rotate({90 - side * ang}) scale(1 {side})">'
+            f'<path d="M0 {-W} Q{L * 0.6} {-W} {L} {W * 1.6} Q{L * 0.55} {W * 0.2} 0 {W}Z" style="fill:#fff;stroke:{INK};stroke-width:3.5;stroke-linejoin:round"/>'
+            f'<path d="M{L * 0.15} {W * 0.5} Q{L * 0.55} {W * 0.5} {L} {W * 1.6} Q{L * 0.55} {W * 0.2} 0 {W}Z" style="{SHADE}"/>'
+            f'</g>')
+    return f'<g transform="translate({x} {y})">' + ''.join(out) + '</g>'
 
 
 WATER, WATER_EDGE = '#4fb3ff', '#1f6fb0'  # kept blue on golden dinos (see KEEP in js/dinos.js)
@@ -400,19 +432,11 @@ DINOS = [
         'id': 'styracosaurus', 'src': 'triceratops-23511.svg',
         'eyes': [r'^g278$', r'^g282$'],
         'colors': {'#698000': '#4cc9f0'},
-        'remove': [r'^g290$', r'^g294$'],  # brow horns (and the little nose horn)...
-        'viewBox': '-30 -62 320 344',
-        'before': frill_spikes(113, 100, 95, '#ff9f43'),  # ...for a crown of frill spikes
-        'after': horn(108, 152, 0, '#fff3c4', 58) + cheeks((60, 146), (154, 146)),  # and one big nose horn
-    },
-    {
-        'id': 'plesiosaurus', 'src': 'brontosaurus-23508.svg',
-        'eyes': [r'^g255$', r'^g259$'],
-        'colors': {'#698000': '#ff8a65'},
-        'remove': [r'^g268$'],  # legs: it swims instead
-        'viewBox': '-90 0 384 508',
-        'before': flippers('#ff8a65'),
-        'after': cheeks((48, 98), (141, 98), rx=12, ry=7) + water(),
+        'remove': [r'^g297$', r'^path3190_1_$'],  # brow horns, for a crown of frill spikes
+        'wrap': {'g290': 'translate(110 160) scale(1.8) translate(-110 -160)'},  # and a bigger nose horn
+        'viewBox': '-30 -70 320 352',
+        'before': frill_spikes(110, 96, 82, 70, '#ff9f43'),
+        'after': cheeks((60, 146), (154, 146)),
     },
     {
         'id': 'carnotaurus', 'src': 'spinosaurus-356257.svg',
@@ -431,6 +455,31 @@ DINOS = [
         'viewBox': '0 -40 315 403',
         'before': bull_horns('#fff3c4'),
         'after': cheeks((84, 100), (161, 100)),
+    },
+    {
+        'id': 'therizinosaurus', 'src': 'velociraptor-355256.svg',
+        'eyes': [r'^n44$', r'^n48$'],
+        'colors': {'#9f7e0d': '#8e44ad'},
+        'viewBox': '-40 -52 382 390',
+        'remove': [r'^n18$', r'^n23$', r'^n11$', r'^n16$'],  # cropped feet and the little claws
+        'insert_after': {'n13': feet('#8e44ad')},
+        'before': feather_ruff(114, 214, 108, '#c38be0', '#ff8fc7') + tuft(114, 14, '#ff8fc7', n=3, length=58, spread=28),
+        'after': big_claws(80, 250, -1) + big_claws(150, 250, 1) + cheeks((64, 78), (148, 78), rx=11, ry=7),
+    },
+]
+
+# Finished dinos waiting for a place to live (not built into the game yet).
+# The Plesiosaurus needs a water location first; move it into DINOS (and add it
+# to js/dinos.js) when there is one.
+LATER = [
+    {
+        'id': 'plesiosaurus', 'src': 'brontosaurus-23508.svg',
+        'eyes': [r'^g255$', r'^g259$'],
+        'colors': {'#698000': '#ff8a65'},
+        'remove': [r'^g268$'],  # legs: it swims instead
+        'viewBox': '-90 0 384 508',
+        'before': flippers('#ff8a65'),
+        'after': cheeks((48, 98), (141, 98), rx=12, ry=7) + water(),
     },
 ]
 
