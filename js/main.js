@@ -68,8 +68,9 @@
       DM.Save.write(save);
     },
     isStarFound: (id) => !!save.stars[id],
-    onStarFound: (star) => {
+    onStarCaught: (star) => {
       save.stars[star.id] = true;
+      save.starsCaught += 1;
       DM.Save.write(save);
     },
     onWin: handleWin,

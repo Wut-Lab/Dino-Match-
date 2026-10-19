@@ -232,7 +232,8 @@
      *   onWin(roundSize): called once every dino has been found
      *   isGoldFound(id): is this golden dino already in the collection?
      *   onGoldFound(dino): a golden dino was found for the first time
-     *   isStarFound(id), onStarFound(star): the same for Dino-Stars
+     *   isStarFound(id): is this Dino-Star already in the collection?
+     *   onStarCaught(star): a Dino-Star was tapped (new or not)
      */
     constructor(opts) {
       Object.assign(this, opts);
@@ -439,7 +440,7 @@
       if (!this.running || this.paused || fs.caught) return;
       fs.catch();
       this.burst(fs.x, fs.y);
-      if (fs.glow) this.onStarFound(fs.star);
+      this.onStarCaught(fs.star);
       this.treasure(fs.el, fs.glow, fs.star.fullName);
     }
 

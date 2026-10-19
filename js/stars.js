@@ -52,14 +52,17 @@
     return d + 'Z';
   })();
 
-  // Front-on cartoon T-Rex face (same green as the T-Rex), centred on the star.
+  // Front-on cartoon T-Rex face in the star's own colour, centred on the star.
+  // A soft shadow under the head lifts it off the star behind it.
   const S = 'stroke="#000" stroke-width="2.6" stroke-linejoin="round"';
-  const FACE =
-    `<path d="M50 37 C62 37 70 44 71 54 C72 65 63 72 50 72 C37 72 28 65 29 54 C30 44 38 37 50 37Z" fill="#6fd34f" ${S}/>` +
+  const HEAD = 'M50 37 C62 37 70 44 71 54 C72 65 63 72 50 72 C37 72 28 65 29 54 C30 44 38 37 50 37Z';
+  const face = (fill) =>
+    `<path d="${HEAD}" transform="translate(0 2.2)" fill="#000" fill-opacity=".22"/>` +
+    `<path d="${HEAD}" fill="${fill}" ${S}/>` +
     `<path d="M50 37 C62 37 70 44 71 54 C72 65 63 72 50 72Z" fill="#000" fill-opacity=".14"/>` +
     // cheeks, nostrils, big toothy grin
-    `<ellipse cx="33.5" cy="57" rx="3.4" ry="2.3" fill="#ff6f9f" fill-opacity=".8"/>` +
-    `<ellipse cx="66.5" cy="57" rx="3.4" ry="2.3" fill="#ff6f9f" fill-opacity=".8"/>` +
+    `<ellipse cx="33.5" cy="57" rx="3.4" ry="2.3" fill="#ff6f9f" fill-opacity=".35"/>` +
+    `<ellipse cx="66.5" cy="57" rx="3.4" ry="2.3" fill="#ff6f9f" fill-opacity=".35"/>` +
     `<path d="M45 56.5 q1.5 -1.4 3 0 M52 56.5 q1.5 -1.4 3 0" fill="none" stroke="#000" stroke-width="1.6" stroke-linecap="round"/>` +
     `<path d="M35 62 Q50 66 65 62 Q50 75 35 62Z" fill="#7a1f2e" ${S}/>` +
     `<path d="M37.4 62.4 L39.5 66.6 L41.6 62.4Z M42.4 63.1 L44.5 66.1 L46.6 63.1Z M53.4 63.1 L55.5 66.1 L57.6 63.1Z M58.4 62.4 L60.5 66.6 L62.6 62.4Z" fill="#fff" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/>` +
@@ -85,6 +88,6 @@
       `<path d="${STAR_PATH}" fill="${fill}" stroke="#000" stroke-width="4" stroke-linejoin="round"/>` +
       `<path d="${STAR_PATH}" fill="#000" fill-opacity=".16" clip-path="url(#sc${n})"/>` +
       `<path d="M48.5 17 Q46 24 43 30" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3.5" stroke-linecap="round"/>` +
-      FACE + `</svg>`;
+      face(fill) + `</svg>`;
   };
 })(window.DinoMatch = window.DinoMatch || {});
