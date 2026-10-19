@@ -72,7 +72,7 @@ async function playRound(p) {
   let p = await newPage(browser, undefined, '');
   check('Menu: shows on load', await visible(p, '#screen-menu'));
   check('Menu: logo letters built', (await p.locator('#logo span').count()) === 'Dino-Match'.length);
-  check('Menu: parade of 5 dinos', (await p.locator('#parade .parader').count()) === 5);
+  check('Menu: 6 dinos hopping in the background', (await p.locator('#menu-dinos .menu-dino').count()) === 6);
   check('Menu: games won starts at 0', (await p.textContent('#games-count')) === '0');
   await p.screenshot({ path: `${OUT}/01-menu.png` });
 

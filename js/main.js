@@ -25,16 +25,8 @@
   // ---- Scenes ----
   DM.buildScene($('menu-scene'));
 
-  // ---- Menu parade of dinos walking along the bottom ----
-  function buildParade() {
-    const parade = $('parade');
-    const picks = DM.DINOS.slice().sort(() => Math.random() - 0.5).slice(0, 5);
-    parade.innerHTML = picks.map((d, i) => {
-      const dur = 16 + Math.random() * 8;
-      return `<div class="parader walking${d.flies ? ' flier' : ''}" style="--d:${dur.toFixed(1)}s;--delay:${(-(i / picks.length) * dur).toFixed(1)}s;--b:${(i % 2) * 6}%;--blink-delay:${-i}s">${DM.dinoSVG(d)}</div>`;
-    }).join('');
-  }
-  buildParade();
+  // ---- Dinos hopping around behind the menu (a new random herd each time) ----
+  DM.MenuDinos.start($('menu-dinos'));
 
   // ---- Screens ----
   function show(id) {
@@ -79,6 +71,7 @@
 
   function startGame() {
     hideWin();
+    DM.MenuDinos.stop();
     show('screen-game');
     // Wait a frame so the field has its real size before placing dinos.
     requestAnimationFrame(() => game.start());
@@ -90,6 +83,7 @@
     DM.Music.start();
     hideWin();
     show('screen-menu');
+    DM.MenuDinos.start($('menu-dinos'));
     renderCount(countChanged);
     countChanged = false;
   }
