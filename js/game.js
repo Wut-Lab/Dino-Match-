@@ -27,14 +27,43 @@
   const STAR_CHANCE = 0.33; // chance a Dino-Star floats across the sky in a round
   const STAR_DELAY = [4, 14]; // seconds into the round before it shows up
   const STAR_CROSS_TIME = 11; // seconds to float from one side to the other
+  const STAMP_CHANCE = 0.33; // chance a Dino Stamp is stuck on something in a round
 
-  // A speech bubble ("WOW!") that rides along with a dino or star.
+  // Collectibles that float across the sky (see Flyer). Each kind says how to
+  // draw it, how big it is, and which collection it belongs to.
+  const FLYERS = {
+    star: {
+      list: () => DM.STARS, svg: (it) => DM.starSVG(it), glow: (it) => it.color,
+      size: 0.75, ratio: 1, rock: 12, cross: STAR_CROSS_TIME,
+      isFound: 'isStarFound', onCaught: 'onStarCaught',
+    },
+  };
+
+  // A speech bubble ("WOW!") that rides along with a dino, star or stamp.
   function say(el, text) {
     const b = document.createElement('div');
     b.className = 'say';
     b.textContent = text;
     el.appendChild(b);
   }
+
+  // Shared "you found something special" moment for golden dinos, Dino-Stars
+  // and Dino Stamps: NEW! the first time (plus a banner), WOW! after that.
+  // Also used by the main menu (stamps), so it lives outside the Game.
+  DM.celebrate = (layer, el, isNew, name, bannerClass = '') => {
+    say(el, isNew ? 'NEW!' : 'WOW!');
+    setTimeout(() => DM.Sound.play('golden'), 250);
+    if (isNew) {
+      const b = document.createElement('div');
+      b.className = `loc-banner gold-banner ${bannerClass}`;
+      b.textContent = `🌟 ${name} collected!`;
+      b.addEventListener('animationend', () => b.remove());
+      layer.appendChild(b);
+      DM.Sound.speak(`Wow! You found ${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}!`);
+    } else {
+      DM.Sound.speak('Wow!');
+    }
+  };
 
   class Actor {
     // gold: null (normal), 'glow' (golden, not collected yet) or 'plain'
@@ -156,23 +185,27 @@
 
   // A Dino-Star bobbing across the sky on a wavy path. glow: true if it isn't
   // in the collection yet. Once tapped it spins, then zooms up and away.
-  class FlyingStar {
-    constructor(star, game, glow) {
-      this.star = star;
+  class Flyer {
+    constructor(kind, item, game, glow) {
+      const k = FLYERS[kind];
+      this.kind = kind;
+      this.item = item;
       this.game = game;
       this.glow = glow;
       this.caught = false;
       this.gone = false;
       this.t = 0;
       const b = game.bounds;
-      this.s = game.size.w * 0.75;
+      this.s = game.size.w * k.size; // width
+      this.h = this.s * k.ratio;     // height
+      this.rock = k.rock;
       this.dir = Math.random() < 0.5 ? 1 : -1;
       this.x = this.dir > 0 ? -this.s : b.W + this.s;
-      this.vx = (this.dir * (b.W + this.s * 2)) / STAR_CROSS_TIME;
+      this.vx = (this.dir * (b.W + this.s * 2)) / k.cross;
       // A random height in the sky, wobbling up and down around it.
-      const top = this.s * 0.6;
-      this.baseY = rand(top, Math.max(top, b.H * game.location.horizon - this.s * 0.1));
-      this.amp = this.s * 0.28;
+      const top = this.h * 0.6;
+      this.baseY = rand(top, Math.max(top, b.H * game.location.horizon - this.h * 0.1));
+      this.amp = this.h * 0.28;
       this.period = rand(2.4, 3.4);
       this.phase = rand(0, Math.PI * 2);
       this.y = this.baseY;
@@ -180,15 +213,15 @@
       const el = document.createElement('div');
       el.className = 'dstar' + (glow ? ' star-glow' : '');
       el.style.width = `${this.s}px`;
-      el.style.setProperty('--star', star.color);
+      el.style.setProperty('--star', k.glow(item));
       el.style.setProperty('--blink-delay', `${-rand(0, 4).toFixed(2)}s`);
       el.setAttribute('role', 'button');
-      el.setAttribute('aria-label', star.fullName);
-      el.innerHTML = `<div class="dstar-body"><div class="dstar-spin">${DM.starSVG(star)}</div></div>` +
+      el.setAttribute('aria-label', item.fullName);
+      el.innerHTML = `<div class="dstar-body"><div class="dstar-spin">${k.svg(item)}</div></div>` +
         (glow ? '<div class="gold-sparkles"><i></i><i></i><i></i><i></i></div>' : '');
       el.addEventListener('pointerdown', (e) => {
         e.preventDefault();
-        game.tapStar(this);
+        game.tapFlyer(this);
       });
       this.el = el;
       this.body = el.querySelector('.dstar-body');
@@ -206,18 +239,18 @@
         // Spin in place for a moment, then zoom up and off the top.
         this.caughtT += dt;
         if (this.caughtT > 0.9) this.y -= this.s * 6 * (this.caughtT - 0.9) * dt * 4;
-        if (this.y < -this.s * 2) this.gone = true;
+        if (this.y < -this.h * 2) this.gone = true;
         return;
       }
       this.x += this.vx * dt;
-      this.y = Math.max(this.s * 0.5, this.baseY + this.amp * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period));
+      this.y = Math.max(this.h * 0.5, this.baseY + this.amp * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period));
       const W = this.game.bounds.W;
       if (this.x < -this.s * 1.5 || this.x > W + this.s * 1.5) this.gone = true;
     }
 
     render() {
-      this.el.style.transform = `translate3d(${(this.x - this.s / 2).toFixed(1)}px, ${(this.y - this.s / 2).toFixed(1)}px, 0)`;
-      if (!this.caught) this.body.style.transform = `rotate(${(12 * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period * 0.7)).toFixed(1)}deg)`;
+      this.el.style.transform = `translate3d(${(this.x - this.s / 2).toFixed(1)}px, ${(this.y - this.h / 2).toFixed(1)}px, 0)`;
+      if (!this.caught) this.body.style.transform = `rotate(${(this.rock * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period * 0.7)).toFixed(1)}deg)`;
     }
   }
 
@@ -230,6 +263,7 @@
      *   onGoldCaught(dino): a golden dino was found (new or not)
      *   isStarFound(id): is this Dino-Star already in the collection?
      *   onStarCaught(star): a Dino-Star was tapped (new or not)
+     *   isStampFound(id), onStampCaught(stamp): the same for Dino Stamps
      */
     constructor(opts) {
       Object.assign(this, opts);
@@ -243,12 +277,13 @@
       this.trees = [];
       this.goldenChance = GOLDEN_CHANCE;
       this.starChance = STAR_CHANCE;
-      this.star = null;
+      this.stampChance = STAMP_CHANCE;
+      this.star = null; // the Flyer in the sky right now, if any
       this.loop = this.loop.bind(this);
       window.addEventListener('resize', () => this.running && this.measure());
       this.card.addEventListener('pointerdown', () => this.target && this.announce());
       this.field.addEventListener('pointerdown', (e) => {
-        if (e.target.closest('.dstar')) return; // stars handle their own taps
+        if (e.target.closest('.dstar, .stuck-stamp')) return; // stars and stamps handle their own taps
         const a = this.actorAt(e.clientX, e.clientY);
         if (a) {
           e.preventDefault();
@@ -379,14 +414,6 @@
       this.field.appendChild(el);
     }
 
-    goldBanner(text) {
-      const el = document.createElement('div');
-      el.className = 'loc-banner gold-banner';
-      el.textContent = text;
-      el.addEventListener('animationend', () => el.remove());
-      this.field.appendChild(el);
-    }
-
     // ---- Round-start banner ----
 
     showBanner() {
@@ -428,24 +455,52 @@
       this.scheduleFog(true);
       this.later(() => this.nextTarget(), 600);
       if (Math.random() < this.starChance) this.later(() => this.launchStar(), rand(STAR_DELAY[0], STAR_DELAY[1]) * 1000);
+      if (Math.random() < this.stampChance) this.later(() => this.placeStamp(), 800);
+    }
+
+    // ---- Dino Stamps ----
+
+    // Stick a small stamp on something in the scenery: a tree, the sun, a
+    // hill, a rock or the volcano (whatever this location has).
+    placeStamp() {
+      if (!this.running || this.field.querySelector('.stuck-stamp')) return null;
+      const anchors = [
+        ...this.trees.map((t) => t.el),
+        ...this.scene.querySelectorAll('.sun, .hill, .far-pine, .volcano, .rock, .boulder'),
+      ];
+      return DM.StuckStamp.stick(anchors, {
+        layer: this.field,
+        size: Math.max(30, this.size.w * 0.3),
+        // On a tree it's part of the tree (dinos in front still cover it);
+        // anything else is in the background, behind all the dinos.
+        zFor: (a) => (a.classList.contains('tree') ? a.style.zIndex : 9),
+        avoid: [],
+        isFound: this.isStampFound,
+        onCaught: this.onStampCaught,
+        canTap: () => this.running && !this.paused,
+      });
     }
 
     // ---- Dino-Stars ----
 
-    launchStar() {
-      if (!this.running || this.star) return;
-      const star = DM.STARS[Math.floor(Math.random() * DM.STARS.length)];
-      this.star = new FlyingStar(star, this, !this.isStarFound(star.id));
-      this.star.render();
-      this.field.appendChild(this.star.el);
+    launchStar() { this.launch('star'); }
+
+    launch(kind) {
+      if (!this.running || this[kind]) return;
+      const k = FLYERS[kind];
+      const list = k.list();
+      const item = list[Math.floor(Math.random() * list.length)];
+      const f = this[kind] = new Flyer(kind, item, this, !this[k.isFound](item.id));
+      f.render();
+      this.field.appendChild(f.el);
     }
 
-    tapStar(fs) {
-      if (!this.running || this.paused || fs.caught) return;
-      fs.catch();
-      this.burst(fs.x, fs.y);
-      this.onStarCaught(fs.star);
-      this.treasure(fs.el, fs.glow, fs.star.fullName);
+    tapFlyer(f) {
+      if (!this.running || this.paused || f.caught) return;
+      f.catch();
+      this.burst(f.x, f.y);
+      this[FLYERS[f.kind].onCaught](f.item);
+      this.treasure(f.el, f.glow, f.item.fullName);
     }
 
     // Which dino did a tap at (x, y) mean? Each dino sits in a square box, and
@@ -471,17 +526,8 @@
       return best;
     }
 
-    // Shared "you found something special" moment for golden dinos and
-    // Dino-Stars: NEW! the first time (plus a banner), WOW! after that.
     treasure(el, isNew, name) {
-      say(el, isNew ? 'NEW!' : 'WOW!');
-      this.later(() => DM.Sound.play('golden'), 250);
-      if (isNew) {
-        this.goldBanner(`🌟 ${name} collected!`);
-        DM.Sound.speak(`Wow! You found ${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}!`);
-      } else {
-        DM.Sound.speak('Wow!');
-      }
+      DM.celebrate(this.field, el, isNew, name);
     }
 
     // Freeze the round (used while the All Sounds menu is open).
@@ -515,7 +561,7 @@
       this.actors = [];
       this.target = null;
       this.star = null;
-      this.field.querySelectorAll('.prop, .fog, .loc-banner, .dstar').forEach((el) => el.remove());
+      this.field.querySelectorAll('.prop, .fog, .loc-banner, .dstar, .stuck-stamp, .stamp-fly').forEach((el) => el.remove());
       this.trees = [];
     }
 

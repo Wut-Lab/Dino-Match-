@@ -20,6 +20,8 @@
     goldCaught: 0,  // every golden dino found, repeats included
     stars: {},      // Dino-Stars collected: { starId: true }
     starsCaught: 0, // every Dino-Star tapped, repeats included
+    stamps: {},     // Dino Stamps collected: { stampId: true }
+    stampsCaught: 0, // every Dino Stamp tapped, repeats included
   });
 
   DM.Save = {
@@ -36,6 +38,7 @@
           // Saves from before the counters: count each one found once.
           data.starsCaught = Math.max(data.starsCaught, Object.keys(data.stars).length);
           data.goldCaught = Math.max(data.goldCaught, Object.keys(data.golden).length);
+          data.stampsCaught = Math.max(data.stampsCaught, Object.keys(data.stamps).length);
           return data;
         }
       } catch (e) { /* private mode or corrupt data: start fresh */ }

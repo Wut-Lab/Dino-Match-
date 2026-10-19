@@ -24,11 +24,36 @@
 
   // ---- Menu background: a random location, its huts and a random herd of
   // hopping dinos, all picked afresh every time the menu opens ----
+  const MENU_STAMP_CHANCE = 0.15; // chance a Dino Stamp is stuck on something here
   function buildMenu() {
     fadeMenu(false);
     const loc = DM.LOCATIONS[Math.floor(Math.random() * DM.LOCATIONS.length)];
     DM.buildScene($('menu-scene'), loc.id);
     DM.MenuDinos.start($('menu-dinos'), loc);
+    if (Math.random() < MENU_STAMP_CHANCE) setTimeout(menuStamp, 400);
+  }
+
+  // Stick a stamp on a hut or the scenery, clear of the buttons in the middle.
+  function menuStamp() {
+    const layer = $('menu-dinos');
+    if (!$('screen-menu').classList.contains('active') || layer.querySelector('.stuck-stamp')) return null;
+    const anchors = [
+      ...layer.querySelectorAll('.menu-hut .hut-body'),
+      ...$('menu-scene').querySelectorAll('.sun, .hill, .far-pine, .volcano, .rock, .boulder'),
+    ];
+    return DM.StuckStamp.stick(anchors, {
+      layer,
+      size: Math.min(48, Math.max(30, Math.min(innerWidth, innerHeight) * 0.06)),
+      zFor: (a) => (a.closest('.menu-hut') ? a.closest('.menu-hut').style.zIndex : 0),
+      avoid: [...document.querySelectorAll('.menu-center > *, #btn-sound, #btn-fullscreen')].map((e) => e.getBoundingClientRect()),
+      isFound: (id) => !!save.stamps[id],
+      onCaught: (stamp) => {
+        save.stamps[stamp.id] = true;
+        save.stampsCaught += 1;
+        DM.Save.write(save);
+      },
+      bannerClass: 'banner-low', // the logo is at the top
+    });
   }
 
   // Playing with the background fades the menu buttons out of the way (and
@@ -84,6 +109,12 @@
     onStarCaught: (star) => {
       save.stars[star.id] = true;
       save.starsCaught += 1;
+      DM.Save.write(save);
+    },
+    isStampFound: (id) => !!save.stamps[id],
+    onStampCaught: (stamp) => {
+      save.stamps[stamp.id] = true;
+      save.stampsCaught += 1;
       DM.Save.write(save);
     },
     onWin: handleWin,
@@ -173,5 +204,5 @@
   DM.Collections.init(save);
 
   // Expose for debugging / future features.
-  DM.app = { game, save, startGame, goMenu };
+  DM.app = { game, save, startGame, goMenu, menuStamp };
 })(window.DinoMatch = window.DinoMatch || {});

@@ -1,10 +1,26 @@
 /*
- * Dino stamps: a postage stamp with a dino's silhouette on it. White
- * perforated edges, a black frame and a grey middle. The silhouette is made
- * from the dino's own art (js/dino-art.js), so any dino can have a stamp.
+ * Dino Stamps: postage stamps with a dino's silhouette on them. Now and then
+ * a small one is stuck on something in the scenery: a tree, a rock, the sun, a
+ * hut... (in a round, see STAMP_CHANCE in game.js, and less often on the main
+ * menu, see MENU_STAMP_CHANCE in main.js). Tapping it makes it pop up big, then
+ * fly away, and adds it to the Dino Stamps collection. Each stamp has a fun
+ * fact, shown and read aloud when it's tapped in the collection.
+ *
+ * White perforated edges, a black frame, a grey middle, a ¢ in the corner and
+ * "Post" along the bottom. The silhouette is made from the dino's own art
+ * (js/dino-art.js), so any dino can have a stamp.
  */
 (function (DM) {
   'use strict';
+
+  // To add a stamp: give it an id, the dino it shows, and its fun fact.
+  const STAMPS = [
+    { id: 'pterodactyl', dino: 'pterodactyl', fact: 'Birds are related to dinosaurs!' },
+  ];
+  STAMPS.forEach((s) => { s.fullName = `${DM.dinoById(s.dino).name} Stamp`; });
+
+  DM.STAMPS = STAMPS;
+  DM.stampById = (id) => STAMPS.find((s) => s.id === id);
 
   // Stamp is drawn in a 100x124 box.
   const W = 100, H = 124;
@@ -38,6 +54,8 @@
     // Picture area inside the black frame.
     const fx = 11, fy = 11, fw = W - 22, fh = H - 22;
     const pad = dino.flies ? 4 : 6;
+    const picH = fh * 0.78; // room for "Post" underneath
+    const text = 'font-family="Fredoka, sans-serif" font-weight="700" fill="#22272c" stroke="#fff" stroke-opacity=".55" stroke-width="2" paint-order="stroke"';
     return `<svg class="stamp-svg stamp-${dino.id}" viewBox="-3 -3 ${W + 6} ${H + 6}" aria-hidden="true">` +
       `<defs><radialGradient id="sg${n}" cx="50%" cy="42%" r="70%">` +
       `<stop offset="0" stop-color="#c3c8cd"/><stop offset="1" stop-color="#8f969d"/></radialGradient>` +
@@ -51,10 +69,111 @@
       `<g clip-path="url(#sk${n})"><rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" fill="url(#sg${n})"/>` +
       `<circle cx="${W / 2}" cy="${fy + fh * 0.44}" r="${fw * 0.36}" fill="#fff" fill-opacity=".28"/>` +
       `<path d="M${fx} ${fy + fh * 0.84} Q${W * 0.3} ${fy + fh * 0.76} ${W / 2} ${fy + fh * 0.84} T${fx + fw} ${fy + fh * 0.84} V${fy + fh} H${fx}Z" fill="#000" fill-opacity=".12"/>` +
-      `<svg x="${fx + pad}" y="${fy + pad}" width="${fw - pad * 2}" height="${fh * 0.9 - pad}" viewBox="${art.viewBox}" preserveAspectRatio="xMidYMid meet" overflow="visible">` +
-      `<g filter="url(#ss${n})">${art.svg}</g></svg></g>` +
+      `<svg x="${fx + pad}" y="${fy + pad}" width="${fw - pad * 2}" height="${picH - pad}" viewBox="${art.viewBox}" preserveAspectRatio="xMidYMid meet" overflow="visible">` +
+      `<g filter="url(#ss${n})">${art.svg}</g></svg>` +
+      `<text x="${fx + fw - 5}" y="${fy + 15}" text-anchor="end" font-size="14" ${text}>¢</text>` +
+      `<text x="${W / 2}" y="${fy + fh - 7}" text-anchor="middle" font-size="13" letter-spacing="0.5" ${text}>Post</text></g>` +
       // black frame
       `<rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="3" fill="none" stroke="#000" stroke-width="3.5"/>` +
       `</svg>`;
   };
+
+  DM.stampArt = (stamp) => DM.stampSVG(DM.dinoById(stamp.dino));
+
+  // ---- A small stamp stuck on something in the scene ----
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const inside = (x, y, r) => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+
+  /**
+   * Stick a random stamp on one of `anchors` (elements in the scene).
+   * opts:
+   *   layer        element the stamp goes in (positioned, covers the scene)
+   *   size         stamp width in px
+   *   avoid        rects (screen coords) to keep clear of, e.g. menu buttons
+   *   zFor(anchor) z-index for a stamp on that anchor (so things in front stay in front)
+   *   isFound(id), onCaught(stamp): collection checks, as in the game
+   *   canTap()     optional: return false to ignore taps (e.g. paused)
+   *   bannerClass  optional extra class for the "collected!" banner
+   * Returns the stamp element, or null if there was nowhere good to put it.
+   */
+  function stick(anchors, opts) {
+    const layer = opts.layer;
+    const lr = layer.getBoundingClientRect();
+    const S = opts.size, H = S * 130 / 106;
+    const avoid = opts.avoid || [];
+    // Try random spots on random anchors until one is on screen and clear.
+    let spot = null;
+    for (let i = 0; i < 40 && !spot && anchors.length; i++) {
+      const a = anchors[Math.floor(Math.random() * anchors.length)];
+      const r = a.getBoundingClientRect();
+      if (r.width < S * 0.6 || r.height < H * 0.4) continue;
+      const fx = rand(0.3, 0.7), fy = rand(0.25, 0.55);
+      const x = r.left + r.width * fx, y = r.top + r.height * fy;
+      const ok = x - S / 2 > lr.left + 4 && x + S / 2 < lr.right - 4 && y - H / 2 > lr.top + 4 && y + H / 2 < lr.bottom - 4 &&
+        !avoid.some((v) => inside(x, y, { left: v.left - S, right: v.right + S, top: v.top - H, bottom: v.bottom + H }));
+      if (ok) spot = { a, fx, fy };
+    }
+    if (!spot) return null;
+
+    const stamp = STAMPS[Math.floor(Math.random() * STAMPS.length)];
+    const isNew = !opts.isFound(stamp.id);
+    const el = document.createElement('div');
+    el.className = 'stuck-stamp' + (isNew ? ' star-glow' : '');
+    el.style.width = `${S}px`;
+    el.style.zIndex = opts.zFor ? opts.zFor(spot.a) : 0;
+    el.style.setProperty('--star', '#fff3a0');
+    el.style.setProperty('--tilt', `${rand(-16, 16).toFixed(0)}deg`);
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-label', stamp.fullName);
+    el.innerHTML = DM.stampArt(stamp) + (isNew ? '<div class="gold-sparkles"><i></i><i></i><i></i><i></i></div>' : '');
+
+    // Keep it on its anchor if the screen is resized (trees move then).
+    const position = () => {
+      if (!el.isConnected) return window.removeEventListener('resize', position);
+      const l = layer.getBoundingClientRect(), r = spot.a.getBoundingClientRect();
+      el.style.left = `${r.left + r.width * spot.fx - l.left}px`;
+      el.style.top = `${r.top + r.height * spot.fy - l.top}px`;
+    };
+    window.addEventListener('resize', position);
+
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (opts.canTap && !opts.canTap()) return;
+      el.remove();
+      popOff(el, stamp, isNew, opts);
+      opts.onCaught(stamp);
+    });
+    layer.appendChild(el);
+    position();
+    return el;
+  }
+
+  // A caught stamp grows big where everyone can see it, then flies away.
+  function popOff(small, stamp, isNew, opts) {
+    const layer = opts.layer;
+    const W = layer.clientWidth, Hh = layer.clientHeight;
+    const big = Math.min(Math.max(opts.size * 3, 110), W * 0.4, Hh * 0.45 * 106 / 130);
+    const bigH = big * 130 / 106;
+    const x0 = parseFloat(small.style.left), y0 = parseFloat(small.style.top);
+    // Keep the big stamp (and its bubble underneath) on screen.
+    const x = Math.min(Math.max(x0, big * 0.6), W - big * 0.6);
+    const y = Math.min(Math.max(y0, bigH * 0.6), Hh - bigH * 0.6 - 50);
+    const fly = document.createElement('div');
+    fly.className = 'stamp-fly';
+    fly.style.left = `${x}px`;
+    fly.style.top = `${y}px`;
+    fly.style.width = `${big}px`;
+    fly.style.setProperty('--dino-w', `${big}px`);
+    fly.style.setProperty('--from', (opts.size / big).toFixed(3));
+    fly.style.setProperty('--dx', `${(x0 - x).toFixed(1)}px`);
+    fly.style.setProperty('--dy', `${(y0 - y).toFixed(1)}px`);
+    fly.style.setProperty('--tilt', small.style.getPropertyValue('--tilt'));
+    fly.innerHTML = `<div class="stamp-fly-art">${DM.stampArt(stamp)}</div>`;
+    layer.appendChild(fly);
+    setTimeout(() => fly.remove(), 2600);
+    DM.celebrate(layer, fly, isNew, stamp.fullName, opts.bannerClass);
+  }
+
+  DM.StuckStamp = { stick };
 })(window.DinoMatch = window.DinoMatch || {});

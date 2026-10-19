@@ -40,6 +40,27 @@
   }
   DM.pineSVG = pineSVG;
 
+  // A few big boulders lying on the grass, in the same outlined style (they're
+  // also good spots for Dino Stamps to stick on). Each location tints them;
+  // `moss` puts a mossy cap on top. Positioned by the middle of their base.
+  function boulders(r, n, color, moss) {
+    const rock = `<svg viewBox="0 0 100 72" aria-hidden="true">` +
+      `<ellipse cx="50" cy="66" rx="46" ry="5" fill="#000" fill-opacity=".16"/>` +
+      `<path d="M8 62 C2 50 6 30 22 22 C32 8 58 4 72 14 C90 18 98 38 94 54 C92 64 80 66 50 66 C30 66 12 66 8 62Z" fill="${color}" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>` +
+      `<path d="M72 14 C90 18 98 38 94 54 C92 64 80 66 50 66 C66 56 76 38 72 14Z" fill="#000" fill-opacity=".16"/>` +
+      (moss ? `<path d="M19 25 C30 8 58 3 73 14 C70 22 62 18 56 24 C50 20 44 26 38 22 C32 28 26 22 19 25Z" fill="#6fbf5a" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>` : '') +
+      `<path d="M24 34 Q30 26 40 24" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="4" stroke-linecap="round"/>` +
+      `<path d="M62 32 L56 42 L62 48" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>` +
+      `</svg>`;
+    let html = '';
+    for (let i = 0; i < n; i++) {
+      // one per slice of the width so they don't pile up
+      const left = ((i + 0.2 + r() * 0.6) / n) * 88 + 6;
+      html += `<div class="boulder" style="left:${left.toFixed(1)}%;top:${(48 + r() * 40).toFixed(1)}%;--bs:${(0.85 + r() * 0.3).toFixed(2)}">${rock}</div>`;
+    }
+    return html;
+  }
+
   const LOCATIONS = [
     {
       id: 'meadow',
@@ -57,7 +78,8 @@
           <div class="sun"></div>
           <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
           <div class="hill h1"></div><div class="hill h2"></div>
-          <div class="grass">${flowers}</div>`;
+          <div class="grass">${flowers}</div>
+          ${boulders(r, 3, '#b9b3ad')}`;
       },
     },
     {
@@ -82,7 +104,8 @@
           <div class="cloud c1"></div><div class="cloud c2"></div>
           <div class="hill h1"></div><div class="hill h2"></div>
           <div class="far-pines">${far}</div>
-          <div class="grass">${shrooms}</div>`;
+          <div class="grass">${shrooms}</div>
+          ${boulders(r, 3, '#a7aaa2', true)}`;
       },
     },
     {
@@ -111,7 +134,8 @@
           </svg>
           <div class="smoke s1"></div><div class="smoke s2"></div><div class="smoke s3"></div>
           <div class="hill h1"></div><div class="hill h2"></div>
-          <div class="grass">${cracks}${rocks}</div>`;
+          <div class="grass">${cracks}${rocks}</div>
+          ${boulders(r, 3, '#a18e98')}`;
       },
     },
   ];
