@@ -42,7 +42,7 @@
   function renderStamps(save) {
     const found = DM.STAMPS.filter((s) => save.stamps[s.id]).length;
     const cards = DM.STAMPS.map((s) => save.stamps[s.id]
-      ? `<button class="gold-card stamp-card found" data-fact="${s.id}" aria-label="${s.fullName}: fun fact"><div class="gold-pic">${DM.stampArt(s)}</div><span>${DM.dinoById(s.dino).name}</span></button>`
+      ? `<button class="gold-card stamp-card found" data-fact="${s.id}" aria-label="${s.fullName}: fun fact"><div class="gold-pic">${DM.stampArt(s)}</div><span>${s.name}</span></button>`
       : `<div class="gold-card"><div class="gold-pic mystery">${DM.stampArt(s)}</div><span>?</span></div>`).join('');
     return `<div class="gold-coll">` +
       `<p class="gold-count">📮 ${found} of ${DM.STAMPS.length} found</p>` +

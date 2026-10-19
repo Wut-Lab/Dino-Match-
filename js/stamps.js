@@ -7,14 +7,17 @@
  * fact, shown and read aloud when it's tapped in the collection.
  *
  * White perforated edges, a black frame, a grey (or coloured) middle, a ¢ in the corner and
- * "Post" along the bottom. The silhouette is made from the dino's own art
- * (js/dino-art.js), so any dino can have a stamp.
+ * "Post" along the bottom. The silhouette is a side view drawn for the stamp
+ * (SIDE_ART), or else the dino's own game art (js/dino-art.js).
  */
 (function (DM) {
   'use strict';
 
   // To add a stamp: give it an id, the dino it shows, and its fun fact.
-  // `colors` is optional: [light middle, dark edge, silhouette] (grey if left out).
+  // `dino` is a game dino's id; for an animal that isn't in the game, give a
+  // `name` instead (and `art`, since there's no game art to use).
+  // `colors` is optional: [light middle, dark edge, silhouette, text] (grey if
+  // left out; text is only needed when the middle is too dark for dark text).
   // `art` is optional: a silhouette drawn just for the stamp (see SIDE_ART below);
   // without it, the dino's game art is used.
   const STAMPS = [
@@ -23,11 +26,33 @@
       id: 'ankylosaurus', dino: 'ankylosaurus', colors: ['#e4f7a6', '#9ccb2e', '#33461a'], art: 'ankylosaurus',
       fact: 'Dinosaur fossils have been found on all seven continents.',
     },
+    {
+      id: 'trex', dino: 'trex', colors: ['#ffc0b5', '#e0483c', '#4a1410'], art: 'trex',
+      fact: 'Some dinosaurs were as tiny as a chicken, while others were as big as a school bus!',
+    },
+    {
+      id: 'triceratops', dino: 'triceratops', colors: ['#c4dbff', '#4479e2', '#13264f'], art: 'triceratops',
+      fact: 'Many dinosaurs had feathers!',
+    },
+    {
+      id: 'plesiosaurus', name: 'Plesiosaurus', colors: ['#5d636b', '#16191c', '#eef1f4', '#fff'], art: 'plesiosaurus',
+      fact: 'We drink the same water dinosaurs did!',
+    },
+    {
+      id: 'velociraptor', dino: 'velociraptor', colors: ['#fff4ad', '#f0bf17', '#4f3d05'], art: 'velociraptor',
+      fact: 'The word "dinosaur" means "terrible lizard"!',
+    },
   ];
-  STAMPS.forEach((s) => { s.fullName = `${DM.dinoById(s.dino).name} Stamp`; });
+  STAMPS.forEach((s) => {
+    s.name = s.name || DM.dinoById(s.dino).name;
+    s.fullName = `${s.name} Stamp`;
+  });
 
-  // Side-on silhouettes for dinos whose game art faces forward (which makes a
-  // blobby silhouette). Only the outline matters: it's filled with one colour.
+  // A thick round-ended line, for legs, necks and tails.
+  const limb = (d, w) => `<path d="${d}" fill="none" stroke="#000" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  // Side-on silhouettes, all facing right. The game art faces forward, which
+  // makes a blobby silhouette. Only the outline matters: it's filled with one colour.
   const SIDE_ART = {
     // Low armoured dome, stubby legs, small head on the right, club tail on the left.
     ankylosaurus: {
@@ -47,6 +72,59 @@
         '<ellipse cx="176" cy="66" rx="16" ry="11"/><path d="M164 58 L160 46 L172 56Z"/>' +
         // tail and its bony club
         '<path d="M46 54 Q28 56 16 60 L16 66 Q30 68 48 72Z"/><ellipse cx="13" cy="63" rx="11" ry="9"/>',
+    },
+    // Big head up front, tiny arms, strong legs, long tail held out behind.
+    trex: {
+      viewBox: '0 0 170 150',
+      svg: '<ellipse cx="78" cy="76" rx="36" ry="25" transform="rotate(-18 78 76)"/>' +
+        '<path d="M50 62 Q22 72 2 104 Q30 92 56 94Z"/>' +
+        // neck and head, with the jaw a little open
+        '<path d="M92 66 Q100 44 112 38 L128 54 Q116 66 110 84Z"/>' +
+        '<path d="M104 32 Q108 14 130 14 L156 18 Q166 20 166 30 L166 38 Q164 44 156 44 L122 46 Q108 46 104 40Z"/>' +
+        '<path d="M116 48 L150 50 Q156 52 152 58 L124 62 Q114 60 114 54Z"/>' +
+        limb('M112 80 L124 86 L126 92', 5) +
+        // legs: the far one, then the near one with a big thigh
+        limb('M60 92 L54 118 L60 134 L48 136', 11) +
+        '<ellipse cx="80" cy="94" rx="17" ry="20"/>' + limb('M80 100 L88 120 L80 136 L96 138', 12),
+    },
+    // Bulky body, frill, horns over the eyes and on the nose, short tail.
+    triceratops: {
+      viewBox: '0 0 200 125',
+      svg: '<ellipse cx="88" cy="64" rx="54" ry="32"/>' +
+        '<path d="M40 56 Q16 64 2 84 Q26 78 46 78Z"/>' +
+        limb('M58 80 L58 112 M80 82 L80 108 M108 82 L108 108 M128 80 L128 112', 15) +
+        // frill with a bumpy edge
+        '<ellipse cx="142" cy="44" rx="20" ry="30" transform="rotate(-25 142 44)"/>' +
+        '<circle cx="120" cy="36" r="6"/><circle cx="121" cy="23" r="6"/><circle cx="129" cy="13" r="6"/><circle cx="141" cy="9" r="6"/>' +
+        // head and beak
+        '<path d="M138 46 L176 58 Q188 62 186 72 L172 80 Q150 84 136 72Z"/><path d="M182 62 L196 72 L182 78Z"/>' +
+        // horns: two long ones over the eyes, a short one on the nose
+        '<path d="M150 52 L194 36 L158 58Z M146 50 L188 28 L152 54Z M174 62 L182 50 L184 64Z"/>',
+    },
+    // Swimming sea reptile: long neck up to a small head, paddle flippers.
+    plesiosaurus: {
+      viewBox: '0 0 200 140',
+      svg: '<ellipse cx="80" cy="94" rx="42" ry="19"/>' +
+        '<path d="M42 88 Q22 92 4 102 Q24 104 46 100Z"/>' +
+        limb('M108 86 Q146 76 148 46 Q150 22 168 18', 13) +
+        '<ellipse cx="172" cy="18" rx="15" ry="9"/><path d="M180 14 L198 20 L180 24Z"/>' +
+        // flippers: two on the near side, two peeking out on the far side
+        '<path d="M98 100 Q116 120 136 128 Q120 108 110 96Z M60 102 Q48 120 32 128 Q50 106 66 98Z"/>' +
+        '<path d="M100 84 Q118 70 134 66 Q120 80 106 92Z M60 82 Q50 68 36 62 Q48 78 56 90Z"/>',
+    },
+    // Lean and fast: long stiff tail, clawed arms, big sickle claw on each foot.
+    velociraptor: {
+      viewBox: '0 0 200 130',
+      svg: '<ellipse cx="96" cy="58" rx="32" ry="17" transform="rotate(-10 96 58)"/>' +
+        '<path d="M70 50 Q36 44 2 40 L4 50 Q38 60 72 70Z"/>' +
+        limb('M116 50 Q128 36 138 30', 13) +
+        '<path d="M130 24 Q140 16 158 20 L180 28 Q184 32 178 35 L152 40 Q136 42 130 34Z"/>' +
+        // a crest of feathers on the arms
+        '<path d="M104 62 L126 72 L118 80 L100 72Z"/>' + limb('M124 74 L132 80 M120 78 L126 86', 3) +
+        // legs, each with the famous curved claw held up off the ground
+        limb('M78 66 L72 90 L80 112 L68 116', 9) + '<path d="M76 108 Q66 98 74 96Z"/>' +
+        '<ellipse cx="96" cy="70" rx="13" ry="15"/>' + limb('M96 74 L104 94 L98 116 L114 118', 10) +
+        '<path d="M100 110 Q92 100 100 98Z"/>',
     },
   };
 
@@ -79,26 +157,28 @@
 
   let uid = 0;
 
-  DM.stampSVG = (dino, colors = GREY, art = DM.DINO_ART[dino.id]) => {
-    const [light, dark, ink] = colors;
+  DM.stampSVG = (stamp) => {
+    const [light, dark, ink, words] = stamp.colors || GREY;
+    const dino = stamp.dino ? DM.dinoById(stamp.dino) : {};
+    const art = SIDE_ART[stamp.art] || DM.DINO_ART[dino.id];
     const n = ++uid;
     // Picture area inside the black frame.
     const fx = 11, fy = 11, fw = W - 22, fh = H - 22;
     const pad = dino.flies ? 4 : 6;
     const picH = fh * 0.78; // room for "Post" underneath
-    const text = 'font-family="Fredoka, sans-serif" font-weight="700" fill="#22272c" stroke="#fff" stroke-opacity=".55" stroke-width="2" paint-order="stroke"';
-    return `<svg class="stamp-svg stamp-${dino.id}" viewBox="-3 -3 ${W + 6} ${H + 6}" aria-hidden="true">` +
+    const text = `font-family="Fredoka, sans-serif" font-weight="700" fill="${words || '#22272c'}" stroke="${words ? '#000' : '#fff'}" stroke-opacity=".55" stroke-width="2" paint-order="stroke"`;
+    return `<svg class="stamp-svg stamp-${stamp.id}" viewBox="-3 -3 ${W + 6} ${H + 6}" aria-hidden="true">` +
       `<defs><radialGradient id="sg${n}" cx="50%" cy="42%" r="70%">` +
       `<stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></radialGradient>` +
       // solid silhouette: the art's shape filled with one flat colour
-      `<filter id="ss${n}"><feFlood flood-color="${ink}"/><feComposite in2="SourceAlpha" operator="in"/></filter>` +
+      `<filter id="ss${n}" x="-20%" y="-20%" width="140%" height="140%"><feFlood flood-color="${ink}"/><feComposite in2="SourceAlpha" operator="in"/></filter>` +
       `<filter id="sd${n}" x="-10%" y="-10%" width="125%" height="125%"><feDropShadow dx="0.8" dy="1.6" stdDeviation="1.2" flood-opacity=".25"/></filter>` +
       `<clipPath id="sk${n}"><rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="3"/></clipPath></defs>` +
       // paper with a soft shadow so the white edge shows on light backgrounds
       `<path d="${PAPER}" fill="#fff" stroke="#d2d2d2" stroke-width="0.7" filter="url(#sd${n})"/>` +
-      // coloured picture with a pale "sun" behind the dino
+      // coloured picture with a pale "sun" behind the dino (a dark one on dark stamps)
       `<g clip-path="url(#sk${n})"><rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" fill="url(#sg${n})"/>` +
-      `<circle cx="${W / 2}" cy="${fy + fh * 0.44}" r="${fw * 0.36}" fill="#fff" fill-opacity=".28"/>` +
+      `<circle cx="${W / 2}" cy="${fy + fh * 0.44}" r="${fw * 0.36}" fill="${words ? '#000' : '#fff'}" fill-opacity="${words ? '.3' : '.28'}"/>` +
       `<path d="M${fx} ${fy + fh * 0.84} Q${W * 0.3} ${fy + fh * 0.76} ${W / 2} ${fy + fh * 0.84} T${fx + fw} ${fy + fh * 0.84} V${fy + fh} H${fx}Z" fill="#000" fill-opacity=".12"/>` +
       `<svg x="${fx + pad}" y="${fy + pad}" width="${fw - pad * 2}" height="${picH - pad}" viewBox="${art.viewBox}" preserveAspectRatio="xMidYMid meet" overflow="visible">` +
       `<g filter="url(#ss${n})">${art.svg}</g></svg>` +
@@ -109,7 +189,7 @@
       `</svg>`;
   };
 
-  DM.stampArt = (stamp) => DM.stampSVG(DM.dinoById(stamp.dino), stamp.colors, SIDE_ART[stamp.art]);
+  DM.stampArt = DM.stampSVG;
 
   // ---- A small stamp stuck on something in the scene ----
 
