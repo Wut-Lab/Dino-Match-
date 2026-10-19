@@ -62,7 +62,19 @@ js/main.js        App shell: menu, screen switching, win screen
 assets/           Favicon
 art/source/       Original Openclipart SVGs (CC0)
 tools/build-art.py  Recolours/remixes art/source into js/dino-art.js
+tools/full-test.js  Full regression test (plays the game in a hidden browser)
 ```
+
+## Full test
+
+`tools/full-test.js` plays through everything in a hidden browser (menu, Credits, Collections, a full round, all locations, golden dinos, Dino-Stars, Sound menu, Dad Lock, old saves, phone and tablet sizes) and prints PASS/FAIL for each check. It needs Node and [Playwright](https://playwright.dev) with Chromium:
+
+```sh
+npm install --no-save playwright && npx playwright install chromium   # once
+node tools/full-test.js                                     # about 2 minutes
+```
+
+Screenshots from the run are saved too (the folder is printed at the end) so you can look things over by eye.
 
 ## Extending it
 
