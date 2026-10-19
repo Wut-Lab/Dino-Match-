@@ -353,6 +353,8 @@ async function playRound(p) {
   check('Stamps: saved + counter 1', s.stamps[stampId] === true && s.stampsCaught === 1);
   const flewOff = await p.waitForFunction(() => !document.querySelector('#field .stamp-fly, #field .stuck-stamp'), null, { timeout: 4000 }).then(() => true).catch(() => false);
   check('Stamps: flies away and is removed', flewOff);
+  // There are several stamps: for the repeat checks, only offer the one just caught.
+  await p.evaluate((id) => { const S = DinoMatch.STAMPS; window.__allStamps = S.slice(); S.splice(0, S.length, DinoMatch.stampById(id)); }, stampId);
   await p.evaluate(() => DinoMatch.app.game.placeStamp());
   check('Stamps: collected stamp comes back without glow', (await p.locator('#field .stuck-stamp').count()) === 1 && (await p.locator('#field .stuck-stamp.star-glow').count()) === 0);
   await p.evaluate(() => { const e = document.querySelector('#field .stuck-stamp'); const r = e.getBoundingClientRect(); e.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2 })); });
@@ -373,6 +375,7 @@ async function playRound(p) {
   check('Menu stamp: tap pops it up and counts (3)', (await p.locator('#menu-dinos .stamp-fly').count()) === 1 && (await save(p)).stampsCaught === 3);
   await p.waitForTimeout(2600);
   await p.evaluate(() => document.querySelector('.menu-center').classList.remove('faded'));
+  await p.evaluate(() => { const S = DinoMatch.STAMPS; S.splice(0, S.length, ...window.__allStamps); });
   await p.click('#btn-collections'); await p.click('#coll-tab-stamps');
   check('Stamps tab: found card, "Total Stamps Found: 3", fact prompt', (await p.locator('#coll-panel .stamp-card.found').count()) === 1 && (await p.textContent('#coll-panel .stamps-total')).includes('3') && (await p.textContent('#stamp-fact')).includes('Tap a stamp'));
   await p.click('#coll-panel .stamp-card.found');
