@@ -66,6 +66,11 @@
         const u = new SpeechSynthesisUtterance(text);
         u.rate = 0.9;
         u.pitch = 1.25;
+        // Dip the music while talking. The timer is a backup for browsers
+        // that forget to say when speech has finished.
+        const unduck = DM.Music ? DM.Music.duck() : () => {};
+        u.onend = u.onerror = unduck;
+        setTimeout(unduck, 4000);
         window.speechSynthesis.speak(u);
       } catch (e) { /* speech not available */ }
     },
@@ -73,6 +78,7 @@
     setEnabled(on) {
       this.enabled = on;
       if (!on && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (DM.Music) DM.Music.refresh();
     },
   };
 

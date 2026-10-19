@@ -71,10 +71,12 @@
     show('screen-game');
     // Wait a frame so the field has its real size before placing dinos.
     requestAnimationFrame(() => game.start());
+    DM.Music.start();
   }
 
   function goMenu() {
     game.stop();
+    DM.Music.stop();
     hideWin();
     show('screen-menu');
     renderCount(countChanged);
@@ -90,6 +92,7 @@
     $('win-count').textContent = save.gamesCompleted;
     $('win').classList.remove('hidden');
     launchConfetti();
+    DM.Music.stop();
     DM.Sound.play('win');
     DM.Sound.speak('Hooray! You found all the dinos!');
   }
