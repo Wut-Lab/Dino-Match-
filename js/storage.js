@@ -17,6 +17,7 @@
     dadLock: false, // full screen Dad Lock is on
     pinHash: null,  // grown-up PIN (hashed) for the Dad Lock
     golden: {},     // golden dinos collected: { dinoId: true }
+    goldCaught: 0,  // every golden dino found, repeats included
     stars: {},      // Dino-Stars collected: { starId: true }
     starsCaught: 0, // every Dino-Star tapped, repeats included
   });
@@ -32,8 +33,9 @@
             if (!data.soundOn) data.mute = { voice: true, music: true, sfx: true };
             delete data.soundOn;
           }
-          // Saves from before the star counter: count each star found once.
+          // Saves from before the counters: count each one found once.
           data.starsCaught = Math.max(data.starsCaught, Object.keys(data.stars).length);
+          data.goldCaught = Math.max(data.goldCaught, Object.keys(data.golden).length);
           return data;
         }
       } catch (e) { /* private mode or corrupt data: start fresh */ }

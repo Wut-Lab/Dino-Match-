@@ -63,8 +63,9 @@
     nameEl: $('target-name'),
     progress: $('progress'),
     isGoldFound: (id) => !!save.golden[id],
-    onGoldFound: (dino) => {
+    onGoldCaught: (dino) => {
       save.golden[dino.id] = true;
+      save.goldCaught += 1;
       DM.Save.write(save);
     },
     isStarFound: (id) => !!save.stars[id],

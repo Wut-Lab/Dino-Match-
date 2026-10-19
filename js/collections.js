@@ -19,6 +19,7 @@
     return `<div class="gold-coll">` +
       `<p class="gold-count">⭐ ${found} of ${DM.DINOS.length} found</p>` +
       (found ? '' : '<p class="gold-tip">Keep playing! A shiny golden dino sometimes joins the game.</p>') +
+      `<p class="coll-total gold-total">Total Golden Dinos Found: <strong>${save.goldCaught}</strong></p>` +
       `<div class="gold-grid">${cards}</div></div>`;
   }
 
@@ -32,7 +33,7 @@
     return `<div class="gold-coll">` +
       `<p class="gold-count">🌟 ${found} of ${DM.STARS.length} found</p>` +
       (found ? '' : '<p class="gold-tip">Look up! A Dino-Star sometimes floats across the sky. Tap it to catch it.</p>') +
-      `<p class="stars-total">Total Stars Collected: <strong>${save.starsCaught}</strong></p>` +
+      `<p class="coll-total stars-total">Total Stars Collected: <strong>${save.starsCaught}</strong></p>` +
       `<div class="gold-grid">${cards}</div></div>`;
   }
 

@@ -732,8 +732,10 @@ button { font: inherit; color: inherit; }
 .gold-pic.mystery .dino-svg { filter: brightness(0) opacity(0.18); }
 .gold-pic .eye, .gold-pic .dino-pose { animation: none; }
 .gold-pic.mystery .star-svg { filter: brightness(0) opacity(0.18); }
-.stars-total { display: inline-block; margin-bottom: 8px; padding: 0.15em 0.8em; background: #e6f0ff; border: 3px solid #8fb6f0; border-radius: 999px; font-weight: 700; color: #3a5a8c; }
-.stars-total strong { color: var(--ink); }
+.coll-total { display: inline-block; margin-bottom: 8px; padding: 0.15em 0.8em; border: 3px solid; border-radius: 999px; font-weight: 700; }
+.coll-total strong { color: var(--ink); }
+.stars-total { background: #e6f0ff; border-color: #8fb6f0; color: #3a5a8c; }
+.gold-total { background: #fff3c4; border-color: #f2c13a; color: #8a5a00; }
 .star-card.found { background: radial-gradient(circle at 50% 40%, #f3f8ff, #d4e6ff); border-color: #8fb6f0; }
 
 #credits { z-index: 60; }

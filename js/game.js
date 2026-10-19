@@ -231,7 +231,7 @@
      *   field, card, pic, label, nameEl, progress: DOM elements
      *   onWin(roundSize): called once every dino has been found
      *   isGoldFound(id): is this golden dino already in the collection?
-     *   onGoldFound(dino): a golden dino was found for the first time
+     *   onGoldCaught(dino): a golden dino was found (new or not)
      *   isStarFound(id): is this Dino-Star already in the collection?
      *   onStarCaught(star): a Dino-Star was tapped (new or not)
      */
@@ -623,8 +623,8 @@
         this.card.classList.add('yay');
         this.label.textContent = 'You found me!';
         if (actor.gold) {
-          // First time finding this golden dino: add it to the collection.
-          if (actor.gold === 'glow') this.onGoldFound(actor.dino);
+          // 'glow' means it's new to the collection.
+          this.onGoldCaught(actor.dino);
           this.treasure(actor.el, actor.gold === 'glow', `Golden ${actor.dino.name}`);
         }
       } else {
