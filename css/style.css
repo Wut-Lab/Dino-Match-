@@ -609,8 +609,9 @@ button { font: inherit; color: inherit; }
   touch-action: none;
 }
 .dstar.caught { cursor: default; }
+.dstamp { aspect-ratio: 106 / 130; }
 .dstar-body, .dstar-spin { width: 100%; height: 100%; }
-.star-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.star-svg, .stamp-svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .star-glow .dstar-spin { animation: star-pulse 1.4s ease-in-out infinite alternate; }
 .dstar.caught .dstar-spin { animation: star-spin 0.9s ease-in-out forwards; }
 /* Stars fly high, so their bubble goes underneath (clear of the banner) */
@@ -762,7 +763,14 @@ button { font: inherit; color: inherit; }
 .gold-pic { aspect-ratio: 1; }
 .gold-pic.mystery .dino-svg { filter: brightness(0) opacity(0.18); }
 .gold-pic .eye, .gold-pic .dino-pose { animation: none; }
-.gold-pic.mystery .star-svg { filter: brightness(0) opacity(0.18); }
+.gold-pic.mystery .star-svg, .gold-pic.mystery .stamp-svg { filter: brightness(0) opacity(0.18); }
+.stamps-total { background: #eef0f2; border-color: #a9b0b8; color: #4a525b; }
+.stamp-card { font-family: inherit; cursor: pointer; }
+.stamp-card.found { background: radial-gradient(circle at 50% 40%, #fbfbfc, #e3e6ea); border-color: #a9b0b8; color: var(--ink); }
+.stamp-card.picked { border-color: var(--ink); box-shadow: 0 0 0 3px #ffd23f; }
+.stamp-card .gold-pic { aspect-ratio: 106 / 130; padding: 0 8%; }
+.stamp-fact { margin: 0 auto 10px; max-width: 30em; padding: 0.4em 0.9em; background: #fffbe6; border: 3px solid #f2c13a; border-radius: 16px; font-size: clamp(16px, 3vmin, 21px); font-weight: 700; }
+.stamp-fact.pop-in { animation: pop-in 0.35s cubic-bezier(.3, 1.6, .5, 1); }
 .coll-total { display: inline-block; margin-bottom: 8px; padding: 0.15em 0.8em; border: 3px solid; border-radius: 999px; font-weight: 700; }
 .coll-total strong { color: var(--ink); }
 .stars-total { background: #e6f0ff; border-color: #8fb6f0; color: #3a5a8c; }

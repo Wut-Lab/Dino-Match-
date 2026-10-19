@@ -93,7 +93,7 @@ async function playRound(p) {
   await p.click('#btn-collections');
   check('Collections: opens', await visible(p, '#collections'));
   const tabs = await p.$$eval('#coll-tabs [role=tab]', (ts) => ts.map((t) => t.textContent));
-  check('Collections: 3 tabs named right', JSON.stringify(tabs) === JSON.stringify(['Golden Dinos', 'Dino-Stars', 'Collection 3']), tabs.join(', '));
+  check('Collections: 3 tabs named right', JSON.stringify(tabs) === JSON.stringify(['Golden Dinos', 'Dino-Stars', 'Dino Stamps']), tabs.join(', '));
   check('Golden tab: 16 mystery cards + tip', (await p.locator('#coll-panel .gold-pic.mystery').count()) === 16 && (await p.locator('#coll-panel .gold-tip').count()) === 1);
   check('Golden tab: "0 of 16 found"', (await p.textContent('#coll-panel .gold-count')).includes('0 of 16'));
   check('Golden tab: Total Golden Dinos Found 0', (await p.textContent('#coll-panel .gold-total')).includes('0'));
@@ -102,7 +102,9 @@ async function playRound(p) {
   check('Stars tab: 13 mystery cards + tip', (await p.locator('#coll-panel .gold-pic.mystery .star-svg').count()) === 13 && (await p.locator('#coll-panel .gold-tip').count()) === 1);
   check('Stars tab: Total Stars Collected 0', (await p.textContent('#coll-panel .stars-total')).includes('0'));
   await p.keyboard.press('End');
-  check('End key -> Collection 3 shows "Coming soon!"', (await p.getAttribute('#coll-tab-c3', 'aria-selected')) === 'true' && (await p.textContent('#coll-panel')).includes('Coming soon'));
+  const nStamps = await p.evaluate(() => DinoMatch.STAMPS.length);
+  check('End key -> Dino Stamps tab', (await p.getAttribute('#coll-tab-stamps', 'aria-selected')) === 'true');
+  check('Stamps tab: a mystery card per stamp, tip, total 0, no fact box yet', (await p.locator('#coll-panel .gold-pic.mystery .stamp-svg').count()) === nStamps && (await p.locator('#coll-panel .gold-tip').count()) === 1 && (await p.textContent('#coll-panel .stamps-total')).includes('0') && (await p.locator('#stamp-fact').count()) === 0);
   await p.keyboard.press('ArrowRight');
   check('Arrow key wraps round to Golden Dinos', (await p.getAttribute('#coll-tab-golden', 'aria-selected')) === 'true');
   await p.click('#coll-tab-stars');
@@ -114,7 +116,7 @@ async function playRound(p) {
   await p.click('#btn-collections'); await p.keyboard.press('Escape'); check('Collections: Esc closes', !(await visible(p, '#collections')));
 
   // ---------- 4. A full round ----------
-  await p.evaluate(() => { DinoMatch.app.game.goldenChance = 0; DinoMatch.app.game.starChance = 0; });
+  await p.evaluate(() => { DinoMatch.app.game.goldenChance = 0; DinoMatch.app.game.starChance = 0; DinoMatch.app.game.stampChance = 0; });
   await p.click('#btn-play');
   await p.waitForTimeout(400);
   check('Game: screen shows', await visible(p, '#screen-game'));
@@ -200,7 +202,7 @@ async function playRound(p) {
   check('Home: fog/trees/banners cleared', (await p.locator('#field .tree, #field .fog, #field .loc-banner').count()) === 0);
 
   // ---------- 6. Golden dinos ----------
-  await p.evaluate(() => { DinoMatch.app.game.goldenChance = 1; DinoMatch.app.game.starChance = 0; });
+  await p.evaluate(() => { DinoMatch.app.game.goldenChance = 1; DinoMatch.app.game.starChance = 0; DinoMatch.app.game.stampChance = 0; });
   await p.click('#btn-play');
   await p.waitForTimeout(400);
   const gold = await p.evaluate(() => DinoMatch.app.game.actors.filter((a) => a.gold).map((a) => [a.dino.id, a.gold]));
@@ -253,13 +255,13 @@ async function playRound(p) {
   await p.keyboard.press('Escape');
 
   // ---------- 7. Dino-Stars ----------
-  await p.evaluate(() => { DinoMatch.app.game.goldenChance = 0; DinoMatch.app.game.starChance = 1; });
+  await p.evaluate(() => { DinoMatch.app.game.goldenChance = 0; DinoMatch.app.game.starChance = 1; DinoMatch.app.game.stampChance = 0; });
   await p.click('#btn-play');
   await p.waitForTimeout(300);
   check('Stars: none at the very start (waits a few seconds)', (await p.locator('#field .dstar').count()) === 0);
   const appeared = await p.waitForSelector('#field .dstar', { timeout: 16000 }).then(() => true).catch(() => false);
   check('Stars: one floats in on its own within 14 s', appeared);
-  const st = await p.evaluate(() => { const f = DinoMatch.app.game.star; return { id: f.star.id, glow: f.glow, y: f.y, sky: DinoMatch.app.game.bounds.H * DinoMatch.app.game.location.horizon, s: f.s }; });
+  const st = await p.evaluate(() => { const f = DinoMatch.app.game.star; return { id: f.item.id, glow: f.glow, y: f.y, sky: DinoMatch.app.game.bounds.H * DinoMatch.app.game.location.horizon, s: f.s }; });
   check('Stars: new star glows', st.glow && (await p.locator('#field .dstar.star-glow .gold-sparkles').count()) === 1);
   check('Stars: flies in the sky area', st.y <= st.sky + st.s * 0.4, `y ${Math.round(st.y)}, horizon ${Math.round(st.sky)}`);
   const ys = [];
@@ -306,8 +308,41 @@ async function playRound(p) {
   await p.screenshot({ path: `${OUT}/08-stars-tab.png` });
   await p.keyboard.press('Escape');
 
+  // ---------- 7b. Dino Stamps ----------
+  await p.evaluate(() => { DinoMatch.app.game.starChance = 0; DinoMatch.app.game.stampChance = 1; });
+  await p.click('#btn-play');
+  const stampIn = await p.waitForSelector('#field .dstamp', { timeout: 20000 }).then(() => true).catch(() => false);
+  check('Stamps: one floats in on its own within 18 s', stampIn);
+  check('Stamps: new stamp glows', await p.evaluate(() => DinoMatch.app.game.stamp.glow) && (await p.locator('#field .dstamp.star-glow .gold-sparkles').count()) === 1);
+  const stb = await p.locator('#field .dstamp').boundingBox();
+  check('Stamps: taller than wide (stamp shape)', stb.height > stb.width * 1.1, `${Math.round(stb.width)}x${Math.round(stb.height)}`);
+  const stampId = await p.evaluate(() => DinoMatch.app.game.stamp.item.id);
+  await p.mouse.click(stb.x + stb.width / 2, stb.y + stb.height / 2);
+  await p.waitForTimeout(300);
+  check('Stamps: tap says NEW! + "Stamp collected!" banner', (await p.locator('#field .dstamp .say').textContent()) === 'NEW!' && (await p.locator('#field .gold-banner').textContent()).includes('Stamp collected'));
+  await p.screenshot({ path: `${OUT}/08b-stamp-caught.png` });
+  s = await save(p);
+  check('Stamps: saved + counter 1', s.stamps[stampId] === true && s.stampsCaught === 1);
+  await p.waitForFunction(() => !document.querySelector('#field .dstamp'), null, { timeout: 5000 });
+  await p.evaluate(() => DinoMatch.app.game.launchStamp());
+  check('Stamps: collected stamp comes back without glow', await p.evaluate(() => !DinoMatch.app.game.stamp.glow));
+  await p.waitForTimeout(1500);
+  const stb2 = await p.locator('#field .dstamp').boundingBox();
+  await p.mouse.click(stb2.x + stb2.width / 2, stb2.y + stb2.height / 2);
+  await p.waitForTimeout(200);
+  check('Stamps: repeat says WOW!, counter 2', (await p.locator('#field .dstamp .say').textContent()) === 'WOW!' && (await save(p)).stampsCaught === 2);
+  await p.click('#btn-home');
+  await p.click('#btn-collections'); await p.click('#coll-tab-stamps');
+  check('Stamps tab: found card, "Total Stamps Found: 2", fact prompt', (await p.locator('#coll-panel .stamp-card.found').count()) === 1 && (await p.textContent('#coll-panel .stamps-total')).includes('2') && (await p.textContent('#stamp-fact')).includes('Tap a stamp'));
+  await p.click('#coll-panel .stamp-card.found');
+  const fact = await p.evaluate((id) => DinoMatch.stampById(id).fact, stampId);
+  check('Stamps tab: tapping a stamp shows its fun fact', (await p.textContent('#stamp-fact')).includes(fact), fact);
+  await p.screenshot({ path: `${OUT}/08c-stamps-tab.png` });
+  await p.keyboard.press('Escape');
+  await p.evaluate(() => { DinoMatch.app.game.stampChance = 0; });
+
   // ---------- 8. Sound menu ----------
-  await p.evaluate(() => { DinoMatch.app.game.starChance = 0; });
+  await p.evaluate(() => { DinoMatch.app.game.starChance = 0; DinoMatch.app.game.stampChance = 0; });
   await p.click('#btn-play'); await p.waitForTimeout(500);
   await p.click('#btn-sound');
   check('Sound menu: opens with 3 rows', (await visible(p, '#sound-menu')) && (await p.locator('#sound-rows .sound-row').count()) === 3);
@@ -393,7 +428,7 @@ async function playRound(p) {
   await typePin(ans); await p.click('.pad-key[data-key="ok"]'); await p.waitForTimeout(300);
   s = await save(p);
   check('Forgot PIN: right answer unlocks and clears the PIN', !s.dadLock && s.pinHash === null && !(await visible(p, '#pad')));
-  check('Dad Lock: everything else in the save survived', s.gamesCompleted === 3 && Object.keys(s.golden).length === 1 && s.starsCaught === 2);
+  check('Dad Lock: everything else in the save survived', s.gamesCompleted === 3 && Object.keys(s.golden).length === 1 && s.starsCaught === 2 && s.stampsCaught === 2);
   check('No errors in desktop session', p.errors.length === 0, p.errors.join(' | '));
   await p.context().close();
 
@@ -403,6 +438,7 @@ async function playRound(p) {
   check('Old save: games won kept', (await p.textContent('#games-count')) === '7');
   check('Old save: sound off -> all three muted', s.mute.voice && s.mute.music && s.mute.sfx && !('soundOn' in s));
   check('Old save: gets empty stars + counter 0', JSON.stringify(s.stars) === '{}' && s.starsCaught === 0);
+  check('Old save: gets empty stamps + counter 0', JSON.stringify(s.stamps) === '{}' && s.stampsCaught === 0);
   check('Old save: golden kept', s.golden.trex === true);
   check('Old save: golden counter starts at 1 (the one already found)', s.goldCaught === 1);
   check('No errors with old save', p.errors.length === 0, p.errors.join(' | '));
@@ -421,7 +457,7 @@ async function playRound(p) {
     check(`${name}: collections pop-up fits the width`, fits);
     await p.screenshot({ path: `${OUT}/12-${name}-collections.png` });
     await p.keyboard.press('Escape');
-    await p.evaluate(() => { DinoMatch.app.game.goldenChance = 1; DinoMatch.app.game.starChance = 0; });
+    await p.evaluate(() => { DinoMatch.app.game.goldenChance = 1; DinoMatch.app.game.starChance = 0; DinoMatch.app.game.stampChance = 0; });
     await p.click('#btn-play'); await p.waitForTimeout(600);
     await p.evaluate(() => DinoMatch.app.game.launchStar()); await p.waitForTimeout(2500);
     const inField = await p.evaluate(() => { const f = document.getElementById('field').getBoundingClientRect(); return DinoMatch.app.game.actors.every((a) => { const r = a.el.getBoundingClientRect(); return r.left >= f.left - 2 && r.right <= f.right + 2 && r.bottom <= f.bottom + 2; }); });

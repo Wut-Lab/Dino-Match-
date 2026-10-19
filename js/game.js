@@ -27,8 +27,26 @@
   const STAR_CHANCE = 0.33; // chance a Dino-Star floats across the sky in a round
   const STAR_DELAY = [4, 14]; // seconds into the round before it shows up
   const STAR_CROSS_TIME = 11; // seconds to float from one side to the other
+  const STAMP_CHANCE = 0.33; // chance a Dino Stamp floats across the sky in a round
+  const STAMP_DELAY = [6, 18];
+  const STAMP_CROSS_TIME = 13;
 
-  // A speech bubble ("WOW!") that rides along with a dino or star.
+  // Collectibles that float across the sky (see Flyer). Each kind says how to
+  // draw it, how big it is, and which collection it belongs to.
+  const FLYERS = {
+    star: {
+      list: () => DM.STARS, svg: (it) => DM.starSVG(it), glow: (it) => it.color,
+      size: 0.75, ratio: 1, rock: 12, cross: STAR_CROSS_TIME,
+      isFound: 'isStarFound', onCaught: 'onStarCaught',
+    },
+    stamp: {
+      list: () => DM.STAMPS, svg: (it) => DM.stampArt(it), glow: () => '#fff3a0', cls: 'dstamp',
+      size: 0.62, ratio: 130 / 106, rock: 8, cross: STAMP_CROSS_TIME,
+      isFound: 'isStampFound', onCaught: 'onStampCaught',
+    },
+  };
+
+  // A speech bubble ("WOW!") that rides along with a dino, star or stamp.
   function say(el, text) {
     const b = document.createElement('div');
     b.className = 'say';
@@ -158,41 +176,46 @@
     }
   }
 
-  // A Dino-Star bobbing across the sky on a wavy path. glow: true if it isn't
-  // in the collection yet. Once tapped it spins, then zooms up and away.
-  class FlyingStar {
-    constructor(star, game, glow) {
-      this.star = star;
+  // A Dino-Star or Dino Stamp bobbing across the sky on a wavy path. glow:
+  // true if it isn't in the collection yet. Once tapped it spins, then zooms
+  // up and away.
+  class Flyer {
+    constructor(kind, item, game, glow) {
+      const k = FLYERS[kind];
+      this.kind = kind;
+      this.item = item;
       this.game = game;
       this.glow = glow;
       this.caught = false;
       this.gone = false;
       this.t = 0;
       const b = game.bounds;
-      this.s = game.size.w * 0.75;
+      this.s = game.size.w * k.size; // width
+      this.h = this.s * k.ratio;     // height
+      this.rock = k.rock;
       this.dir = Math.random() < 0.5 ? 1 : -1;
       this.x = this.dir > 0 ? -this.s : b.W + this.s;
-      this.vx = (this.dir * (b.W + this.s * 2)) / STAR_CROSS_TIME;
+      this.vx = (this.dir * (b.W + this.s * 2)) / k.cross;
       // A random height in the sky, wobbling up and down around it.
-      const top = this.s * 0.6;
-      this.baseY = rand(top, Math.max(top, b.H * game.location.horizon - this.s * 0.1));
-      this.amp = this.s * 0.28;
+      const top = this.h * 0.6;
+      this.baseY = rand(top, Math.max(top, b.H * game.location.horizon - this.h * 0.1));
+      this.amp = this.h * 0.28;
       this.period = rand(2.4, 3.4);
       this.phase = rand(0, Math.PI * 2);
       this.y = this.baseY;
 
       const el = document.createElement('div');
-      el.className = 'dstar' + (glow ? ' star-glow' : '');
+      el.className = 'dstar' + (k.cls ? ` ${k.cls}` : '') + (glow ? ' star-glow' : '');
       el.style.width = `${this.s}px`;
-      el.style.setProperty('--star', star.color);
+      el.style.setProperty('--star', k.glow(item));
       el.style.setProperty('--blink-delay', `${-rand(0, 4).toFixed(2)}s`);
       el.setAttribute('role', 'button');
-      el.setAttribute('aria-label', star.fullName);
-      el.innerHTML = `<div class="dstar-body"><div class="dstar-spin">${DM.starSVG(star)}</div></div>` +
+      el.setAttribute('aria-label', item.fullName);
+      el.innerHTML = `<div class="dstar-body"><div class="dstar-spin">${k.svg(item)}</div></div>` +
         (glow ? '<div class="gold-sparkles"><i></i><i></i><i></i><i></i></div>' : '');
       el.addEventListener('pointerdown', (e) => {
         e.preventDefault();
-        game.tapStar(this);
+        game.tapFlyer(this);
       });
       this.el = el;
       this.body = el.querySelector('.dstar-body');
@@ -210,18 +233,18 @@
         // Spin in place for a moment, then zoom up and off the top.
         this.caughtT += dt;
         if (this.caughtT > 0.9) this.y -= this.s * 6 * (this.caughtT - 0.9) * dt * 4;
-        if (this.y < -this.s * 2) this.gone = true;
+        if (this.y < -this.h * 2) this.gone = true;
         return;
       }
       this.x += this.vx * dt;
-      this.y = Math.max(this.s * 0.5, this.baseY + this.amp * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period));
+      this.y = Math.max(this.h * 0.5, this.baseY + this.amp * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period));
       const W = this.game.bounds.W;
       if (this.x < -this.s * 1.5 || this.x > W + this.s * 1.5) this.gone = true;
     }
 
     render() {
-      this.el.style.transform = `translate3d(${(this.x - this.s / 2).toFixed(1)}px, ${(this.y - this.s / 2).toFixed(1)}px, 0)`;
-      if (!this.caught) this.body.style.transform = `rotate(${(12 * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period * 0.7)).toFixed(1)}deg)`;
+      this.el.style.transform = `translate3d(${(this.x - this.s / 2).toFixed(1)}px, ${(this.y - this.h / 2).toFixed(1)}px, 0)`;
+      if (!this.caught) this.body.style.transform = `rotate(${(this.rock * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period * 0.7)).toFixed(1)}deg)`;
     }
   }
 
@@ -234,6 +257,7 @@
      *   onGoldCaught(dino): a golden dino was found (new or not)
      *   isStarFound(id): is this Dino-Star already in the collection?
      *   onStarCaught(star): a Dino-Star was tapped (new or not)
+     *   isStampFound(id), onStampCaught(stamp): the same for Dino Stamps
      */
     constructor(opts) {
       Object.assign(this, opts);
@@ -247,7 +271,9 @@
       this.trees = [];
       this.goldenChance = GOLDEN_CHANCE;
       this.starChance = STAR_CHANCE;
-      this.star = null;
+      this.stampChance = STAMP_CHANCE;
+      this.star = null;  // the Flyer in the sky right now, if any
+      this.stamp = null;
       this.loop = this.loop.bind(this);
       window.addEventListener('resize', () => this.running && this.measure());
       this.card.addEventListener('pointerdown', () => this.target && this.announce());
@@ -424,24 +450,30 @@
       this.scheduleFog(true);
       this.later(() => this.nextTarget(), 600);
       if (Math.random() < this.starChance) this.later(() => this.launchStar(), rand(STAR_DELAY[0], STAR_DELAY[1]) * 1000);
+      if (Math.random() < this.stampChance) this.later(() => this.launchStamp(), rand(STAMP_DELAY[0], STAMP_DELAY[1]) * 1000);
     }
 
-    // ---- Dino-Stars ----
+    // ---- Dino-Stars and Dino Stamps ----
 
-    launchStar() {
-      if (!this.running || this.star) return;
-      const star = DM.STARS[Math.floor(Math.random() * DM.STARS.length)];
-      this.star = new FlyingStar(star, this, !this.isStarFound(star.id));
-      this.star.render();
-      this.field.appendChild(this.star.el);
+    launchStar() { this.launch('star'); }
+    launchStamp() { this.launch('stamp'); }
+
+    launch(kind) {
+      if (!this.running || this[kind]) return;
+      const k = FLYERS[kind];
+      const list = k.list();
+      const item = list[Math.floor(Math.random() * list.length)];
+      const f = this[kind] = new Flyer(kind, item, this, !this[k.isFound](item.id));
+      f.render();
+      this.field.appendChild(f.el);
     }
 
-    tapStar(fs) {
-      if (!this.running || this.paused || fs.caught) return;
-      fs.catch();
-      this.burst(fs.x, fs.y);
-      this.onStarCaught(fs.star);
-      this.treasure(fs.el, fs.glow, fs.star.fullName);
+    tapFlyer(f) {
+      if (!this.running || this.paused || f.caught) return;
+      f.catch();
+      this.burst(f.x, f.y);
+      this[FLYERS[f.kind].onCaught](f.item);
+      this.treasure(f.el, f.glow, f.item.fullName);
     }
 
     // Shared "you found something special" moment for golden dinos and
@@ -487,7 +519,7 @@
       this.actors.forEach((a) => a.el.remove());
       this.actors = [];
       this.target = null;
-      this.star = null;
+      this.star = this.stamp = null;
       this.field.querySelectorAll('.prop, .fog, .loc-banner, .dstar').forEach((el) => el.remove());
       this.trees = [];
     }
@@ -525,10 +557,12 @@
       for (const a of this.actors) a.update(dt, this.bounds, this.size, this.actors);
       this.separate();
       for (const a of this.actors) a.render(this.size);
-      if (this.star) {
-        this.star.update(dt);
-        this.star.render();
-        if (this.star.gone) { this.star.el.remove(); this.star = null; }
+      for (const kind of ['star', 'stamp']) {
+        const f = this[kind];
+        if (!f) continue;
+        f.update(dt);
+        f.render();
+        if (f.gone) { f.el.remove(); this[kind] = null; }
       }
 
       const gone = this.actors.filter((a) => a.gone);

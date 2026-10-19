@@ -2,7 +2,7 @@
  * Collections screen: a pop-up with one tab per collection.
  *
  * Each tab has a title and a render(save) that returns its contents.
- * Collection 3 is still a placeholder.
+ * Dino Stamps can be tapped for a fun fact.
  */
 (function (DM) {
   'use strict';
@@ -37,10 +37,37 @@
       `<div class="gold-grid">${cards}</div></div>`;
   }
 
+  // Dino Stamps: postage stamps that float across the sky now and then (see
+  // STAMP_CHANCE in game.js). Tap a found stamp to hear its fun fact.
+  function renderStamps(save) {
+    const found = DM.STAMPS.filter((s) => save.stamps[s.id]).length;
+    const cards = DM.STAMPS.map((s) => save.stamps[s.id]
+      ? `<button class="gold-card stamp-card found" data-fact="${s.id}" aria-label="${s.fullName}: fun fact"><div class="gold-pic">${DM.stampArt(s)}</div><span>${DM.dinoById(s.dino).name}</span></button>`
+      : `<div class="gold-card"><div class="gold-pic mystery">${DM.stampArt(s)}</div><span>?</span></div>`).join('');
+    return `<div class="gold-coll">` +
+      `<p class="gold-count">📮 ${found} of ${DM.STAMPS.length} found</p>` +
+      (found ? '' : '<p class="gold-tip">Look up! A Dino Stamp sometimes floats across the sky. Tap it to catch it.</p>') +
+      `<p class="coll-total stamps-total">Total Stamps Found: <strong>${save.stampsCaught}</strong></p>` +
+      (found ? '<p id="stamp-fact" class="stamp-fact" aria-live="polite">Tap a stamp for a fun fact!</p>' : '') +
+      `<div class="gold-grid">${cards}</div></div>`;
+  }
+
+  // Tapping a found stamp shows its fun fact and reads it aloud.
+  function showFact(card) {
+    const stamp = DM.stampById(card.dataset.fact);
+    $('coll-panel').querySelectorAll('.stamp-card').forEach((c) => c.classList.toggle('picked', c === card));
+    const box = $('stamp-fact');
+    box.innerHTML = `<strong>Fun fact:</strong> ${stamp.fact}`;
+    box.classList.remove('pop-in');
+    void box.offsetWidth;
+    box.classList.add('pop-in');
+    DM.Sound.speak(stamp.fact);
+  }
+
   const COLLECTIONS = [
     { id: 'golden', title: 'Golden Dinos', render: renderGolden },
     { id: 'stars', title: 'Dino-Stars', render: renderStars },
-    { id: 'c3', title: 'Collection 3', render: () => '<p class="coll-empty">Coming soon!</p>' },
+    { id: 'stamps', title: 'Dino Stamps', render: renderStamps },
   ];
 
   let save = null;
@@ -77,6 +104,10 @@
       $('coll-tabs').addEventListener('click', (e) => {
         const t = e.target.closest('[role="tab"]');
         if (t) { DM.Sound.play('tap'); selectTab(Number(t.dataset.i)); }
+      });
+      $('coll-panel').addEventListener('click', (e) => {
+        const card = e.target.closest('[data-fact]');
+        if (card) { DM.Sound.play('tap'); showFact(card); }
       });
       // Arrow keys move between tabs (standard tab behaviour).
       $('coll-tabs').addEventListener('keydown', (e) => {

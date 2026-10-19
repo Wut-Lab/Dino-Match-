@@ -86,6 +86,12 @@
       save.starsCaught += 1;
       DM.Save.write(save);
     },
+    isStampFound: (id) => !!save.stamps[id],
+    onStampCaught: (stamp) => {
+      save.stamps[stamp.id] = true;
+      save.stampsCaught += 1;
+      DM.Save.write(save);
+    },
     onWin: handleWin,
   });
 

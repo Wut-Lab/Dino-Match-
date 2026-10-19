@@ -1,10 +1,24 @@
 /*
- * Dino stamps: a postage stamp with a dino's silhouette on it. White
- * perforated edges, a black frame and a grey middle. The silhouette is made
- * from the dino's own art (js/dino-art.js), so any dino can have a stamp.
+ * Dino Stamps: postage stamps with a dino's silhouette on them. Now and then
+ * one floats across the sky during a round (see STAMP_CHANCE in game.js), and
+ * tapping it adds it to the Dino Stamps collection. Each stamp has a fun fact,
+ * shown and read aloud when it's tapped in the collection.
+ *
+ * White perforated edges, a black frame, a grey middle, a ¢ in the corner and
+ * "Post" along the bottom. The silhouette is made from the dino's own art
+ * (js/dino-art.js), so any dino can have a stamp.
  */
 (function (DM) {
   'use strict';
+
+  // To add a stamp: give it an id, the dino it shows, and its fun fact.
+  const STAMPS = [
+    { id: 'pterodactyl', dino: 'pterodactyl', fact: 'Birds are related to dinosaurs!' },
+  ];
+  STAMPS.forEach((s) => { s.fullName = `${DM.dinoById(s.dino).name} Stamp`; });
+
+  DM.STAMPS = STAMPS;
+  DM.stampById = (id) => STAMPS.find((s) => s.id === id);
 
   // Stamp is drawn in a 100x124 box.
   const W = 100, H = 124;
@@ -38,6 +52,8 @@
     // Picture area inside the black frame.
     const fx = 11, fy = 11, fw = W - 22, fh = H - 22;
     const pad = dino.flies ? 4 : 6;
+    const picH = fh * 0.78; // room for "Post" underneath
+    const text = 'font-family="Fredoka, sans-serif" font-weight="700" fill="#22272c" stroke="#fff" stroke-opacity=".55" stroke-width="2" paint-order="stroke"';
     return `<svg class="stamp-svg stamp-${dino.id}" viewBox="-3 -3 ${W + 6} ${H + 6}" aria-hidden="true">` +
       `<defs><radialGradient id="sg${n}" cx="50%" cy="42%" r="70%">` +
       `<stop offset="0" stop-color="#c3c8cd"/><stop offset="1" stop-color="#8f969d"/></radialGradient>` +
@@ -51,10 +67,14 @@
       `<g clip-path="url(#sk${n})"><rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" fill="url(#sg${n})"/>` +
       `<circle cx="${W / 2}" cy="${fy + fh * 0.44}" r="${fw * 0.36}" fill="#fff" fill-opacity=".28"/>` +
       `<path d="M${fx} ${fy + fh * 0.84} Q${W * 0.3} ${fy + fh * 0.76} ${W / 2} ${fy + fh * 0.84} T${fx + fw} ${fy + fh * 0.84} V${fy + fh} H${fx}Z" fill="#000" fill-opacity=".12"/>` +
-      `<svg x="${fx + pad}" y="${fy + pad}" width="${fw - pad * 2}" height="${fh * 0.9 - pad}" viewBox="${art.viewBox}" preserveAspectRatio="xMidYMid meet" overflow="visible">` +
-      `<g filter="url(#ss${n})">${art.svg}</g></svg></g>` +
+      `<svg x="${fx + pad}" y="${fy + pad}" width="${fw - pad * 2}" height="${picH - pad}" viewBox="${art.viewBox}" preserveAspectRatio="xMidYMid meet" overflow="visible">` +
+      `<g filter="url(#ss${n})">${art.svg}</g></svg>` +
+      `<text x="${fx + fw - 5}" y="${fy + 15}" text-anchor="end" font-size="14" ${text}>¢</text>` +
+      `<text x="${W / 2}" y="${fy + fh - 7}" text-anchor="middle" font-size="13" letter-spacing="0.5" ${text}>Post</text></g>` +
       // black frame
       `<rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" rx="3" fill="none" stroke="#000" stroke-width="3.5"/>` +
       `</svg>`;
   };
+
+  DM.stampArt = (stamp) => DM.stampSVG(DM.dinoById(stamp.dino));
 })(window.DinoMatch = window.DinoMatch || {});
