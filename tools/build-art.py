@@ -119,6 +119,30 @@ def feet(color, offset=(88.31382, 19.89826)):
     return ''.join(out)
 
 
+def belly(cx, cy, rx, ry, color):
+    """A lighter belly patch (T-Rex)."""
+    return f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="{color}"/>'
+
+
+def spots(color, pts):
+    """Darker spots on the body (Dilophosaurus)."""
+    return ''.join(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{color}"/>' for x, y, r in pts)
+
+
+def bill(color):
+    """Parasaurolophus duck bill, over the lower face (nostrils draw on top)."""
+    return (f'<path d="M70 150 Q70 128 122 130 Q174 128 174 150 Q174 170 122 168 Q70 170 70 150Z" style="fill:{color};stroke:{INK};stroke-width:4;stroke-linejoin:round"/>'
+            f'<path d="M80 154 Q122 164 164 154" style="fill:none;stroke:{INK};stroke-width:3;stroke-linecap:round"/>')
+
+
+def brow_stripes(color, offset=(88.31382, 19.89826)):
+    """Allosaurus: tiger-ish stripes across the forehead and down the cheeks."""
+    d = ('M84 50 Q105 60 126 50 M88 66 Q105 74 122 66 M92 82 Q105 88 118 82 '
+         'M46 96 Q54 92 60 100 M164 96 Q156 92 150 100')
+    return (f'<g transform="translate({offset[0]} {offset[1]})">'
+            f'<path d="{d}" style="fill:none;stroke:{color};stroke-width:7;stroke-linecap:round"/></g>')
+
+
 def tuft(cx, cy, color, n=3, length=34, spread=22):
     """A little tuft of feathers sticking up (drawn behind the head)."""
     out = []
@@ -200,6 +224,7 @@ DINOS = [
         'id': 'trex', 'src': 'trex-23513.svg',
         'eyes': [r'^g300$', r'^g306$'],
         'colors': {'#698000': '#6fd34f'},
+        'insert_after': {'g241': belly(123, 266, 72, 74, '#b3f08f')},
         'after': cheeks((84, 100), (161, 100)),
     },
     {
@@ -247,6 +272,7 @@ DINOS = [
         'eyes': [r'^g300$', r'^g306$'],
         'colors': {'#698000': '#ff7eb6'},
         'remove': [r'^g282$', r'^g285$'],  # T-Rex fangs
+        'insert_after': {'g291': bill('#ffc4de')},  # duck bill over the lower face
         'viewBox': '0 -118 308 482',
         'before': crest('#b44fe0'),
         'after': cheeks((84, 100), (161, 100)),
@@ -255,6 +281,13 @@ DINOS = [
         'id': 'spinosaurus', 'src': 'spinosaurus-356257.svg',
         'eyes': [r'^g300$', r'^g306$'],
         'colors': {'#698000': '#ff5a4e', '#95702b': '#ffd23f'},
+        # Slimmer than the T-Rex: squeeze the body and arms, pull feet, tail and sail in.
+        'wrap': {
+            'g241': 'translate(123 0) scale(0.78 1) translate(-123 0)',
+            'g265': 'translate(123 0) scale(0.84 1) translate(-123 0)',
+            'g247': 'translate(14 0)', 'g256': 'translate(-14 0)',
+            'layer1_1_': 'translate(-26 0)', 'g83': 'translate(-24 0)',
+        },
         'after': cheeks((84, 100), (161, 100)),
     },
     {
@@ -273,14 +306,17 @@ DINOS = [
         'colors': {'#9f7e0d': '#5763e0'},
         'viewBox': '0 -44 302 382',
         'remove': [r'^n18$', r'^n23$'],
-        'insert_after': {'n13': feet('#5763e0')},
         'before': horn(50, 18, -28, '#ff7a3c', 40) + horn(161, 18, 28, '#ff7a3c', 40),
+        'insert_after': {'n13': feet('#5763e0'), 'n40': brow_stripes('#2f369a')},
         'after': cheeks((64, 78), (148, 78), rx=11, ry=7),
     },
     {
         'id': 'dilophosaurus', 'src': 'trex-23513.svg',
         'eyes': [r'^g300$', r'^g306$'],
         'colors': {'#698000': '#c3e33f'},
+        'insert_after': {'g241': spots('#8fb21c', [(36, 196, 12), (24, 238, 8), (52, 282, 10), (206, 194, 12),
+                                                   (220, 236, 8), (192, 282, 10), (96, 300, 9), (150, 300, 9),
+                                                   (123, 330, 7), (44, 160, 7), (202, 160, 7)])},
         'viewBox': '0 -82 308 446',
         'before': twin_crests('#ff4d4d', '#ffd23f'),
         'after': cheeks((84, 100), (161, 100)),
@@ -354,6 +390,8 @@ def clean(el, cfg):
         # fighting the original transform attributes.
         if any(re.search(p, cid) for p in cfg.get('eyes', [])):
             markup = f'<g class="eye">{markup}</g>'
+        if cid in cfg.get('wrap', {}):
+            markup = f'<g transform="{cfg["wrap"][cid]}">{markup}</g>'
         out.append(markup)
         out.append(cfg.get('insert_after', {}).get(cid, ''))
     return ''.join(out)

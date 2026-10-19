@@ -19,7 +19,7 @@
     { id: 'ankylosaurus', name: 'Ankylosaurus', credit: { artist: 'AreYouPrepared', url: OC + '356643' } },
     { id: 'parasaurolophus', name: 'Parasaurolophus', credit: { artist: 'StudioFibonacci', url: OC + '23513', note: 'remix of the T-Rex' } },
     { id: 'spinosaurus', name: 'Spinosaurus', credit: { artist: 'AreYouPrepared', url: OC + '356257' } },
-    { id: 'velociraptor', name: 'Velociraptor', credit: { artist: 'AreYouPrepared', url: OC + '355256' } },
+    { id: 'velociraptor', name: 'Velociraptor', scale: 0.84, credit: { artist: 'AreYouPrepared', url: OC + '355256' } },
     { id: 'allosaurus', name: 'Allosaurus', credit: { artist: 'AreYouPrepared', url: OC + '355256', note: 'remix of the Velociraptor' } },
     { id: 'dilophosaurus', name: 'Dilophosaurus', credit: { artist: 'StudioFibonacci', url: OC + '23513', note: 'remix of the T-Rex' } },
     { id: 'pachycephalosaurus', name: 'Pachycephalosaurus', credit: { artist: 'StudioFibonacci', url: OC + '23513', note: 'remix of the T-Rex' } },
