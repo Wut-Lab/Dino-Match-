@@ -253,8 +253,8 @@ DINOS = [
     {
         'id': 'pterodactyl', 'src': 'pterodactyl-28420.svg', 'flies': True,
         'eyes': [r'^eyes$'],
-        'colors': {'#d37d1a': '#ffcf3a'},
-        'gradient_fill': '#ffb703',   # toes were gradients; flatten them
+        'colors': {'#d37d1a': '#a3abb5'},  # gray, so it can't be mistaken for a golden dino
+        'gradient_fill': '#ff9f43',   # toes were gradients; flatten them
         'remove': [r'^shadow$'],      # drop shadow (the game draws its own)
         'viewBox': '0 0 723 445',
         'after': cheeks((322, 206), (400, 206), rx=12, ry=7),
