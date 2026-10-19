@@ -49,6 +49,9 @@
         case 'wrong':
           this.note(330, 0, 0.28, 'sine', 0.16, 180);
           break;
+        case 'golden':
+          [1047, 1319, 1568, 2093, 1568, 2093, 2637].forEach((f, i) => this.note(f, i * 0.07, 0.25, 'sine', 0.1));
+          break;
         case 'win':
           [523, 659, 784, 659, 784, 1047].forEach((f, i) => this.note(f, i * 0.14, i === 5 ? 0.6 : 0.2, 'triangle', 0.16));
           [262, 392].forEach((f) => this.note(f, 0.7, 0.6, 'sine', 0.1));

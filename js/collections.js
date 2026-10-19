@@ -1,16 +1,29 @@
 /*
  * Collections screen: a pop-up with one tab per collection.
  *
- * The three collections are placeholders for now. To fill one in, give it a
- * real title and make render() return its contents (it receives the save data).
+ * Each tab has a title and a render(save) that returns its contents.
+ * Collections 2 and 3 are still placeholders.
  */
 (function (DM) {
   'use strict';
 
   const $ = (id) => document.getElementById(id);
 
+  // Golden Dinos: one golden version of every dino, collected by finding it in
+  // a round (see GOLDEN_CHANCE in game.js). Unfound ones show as silhouettes.
+  function renderGolden(save) {
+    const found = DM.DINOS.filter((d) => save.golden[d.id]).length;
+    const cards = DM.DINOS.map((d) => save.golden[d.id]
+      ? `<div class="gold-card found"><div class="gold-pic">${DM.dinoSVG(d, { fit: true, gold: true })}</div><span>${d.name}</span></div>`
+      : `<div class="gold-card"><div class="gold-pic mystery">${DM.dinoSVG(d, { fit: true })}</div><span>?</span></div>`).join('');
+    return `<div class="gold-coll">` +
+      `<p class="gold-count">⭐ ${found} of ${DM.DINOS.length} found</p>` +
+      (found ? '' : '<p class="gold-tip">Keep playing! A shiny golden dino sometimes joins the game.</p>') +
+      `<div class="gold-grid">${cards}</div></div>`;
+  }
+
   const COLLECTIONS = [
-    { id: 'c1', title: 'Collection 1', render: () => '<p class="coll-empty">Coming soon!</p>' },
+    { id: 'golden', title: 'Golden Dinos', render: renderGolden },
     { id: 'c2', title: 'Collection 2', render: () => '<p class="coll-empty">Coming soon!</p>' },
     { id: 'c3', title: 'Collection 3', render: () => '<p class="coll-empty">Coming soon!</p>' },
   ];

@@ -18,7 +18,8 @@ A picture of a dinosaur shows up on the left, and 8 dinosaurs (picked at random 
 - Progress is saved in the browser (`localStorage`)
 - A sound on/off toggle, and the setting is remembered
 - Full screen with an optional **Dad Lock**: a grown-up PIN is needed to leave full screen. Browsers always allow leaving full screen (Esc, swipes), so if that happens while locked, a lock screen covers the game until the PIN is entered. Kids can only tap "Back to full screen". Forgot the PIN? Answer a grown-up multiplication question to reset it. Not available on iPhone, where Safari doesn't support full screen for web pages
-- A Collections screen on the main menu with three tabs (placeholders for now; fill them in via `js/collections.js`)
+- **Golden Dinos**: about 1 round in 3, one dino is a shiny, glowing golden version. Finding it on its turn adds it to the Golden Dinos collection. Once collected it can still turn up golden (shiny but not glowing) and says "WOW!" as it walks off. Golden art is generated from each dino's normal art (`js/dinos.js`), and the chance is `GOLDEN_CHANCE` in `js/game.js`
+- A Collections screen on the main menu: Golden Dinos, plus two placeholder tabs (fill them in via `js/collections.js`)
 - A Credits screen on the main menu naming each dino's artist (credits live next to each dino in `js/dinos.js`)
 - No build step to play, no dependencies, no audio files
 

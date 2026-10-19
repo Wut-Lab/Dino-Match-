@@ -23,11 +23,15 @@
   const MISSES_BEFORE_HINT = 2;
   const CHEER_TIME = 0.65; // seconds the found dino celebrates before leaving
   const EXIT_SPEED = 2.8; // dino-widths per second when walking off screen
+  const GOLDEN_CHANCE = 0.33; // chance a round has one golden dino in it
 
   class Actor {
-    constructor(dino, game) {
+    // gold: null (normal), 'glow' (golden, not collected yet) or 'plain'
+    // (golden, already in the collection: no glow).
+    constructor(dino, game, gold = null) {
       this.dino = dino;
       this.game = game;
+      this.gold = gold;
       this.x = 0;
       this.y = 0;
       this.tx = 0;
@@ -41,13 +45,15 @@
       this.gone = false;
 
       const el = document.createElement('div');
-      el.className = 'actor' + (dino.flies ? ' flier' : '');
+      el.className = 'actor' + (dino.flies ? ' flier' : '') + (gold ? ' golden' : '') + (gold === 'glow' ? ' gold-glow' : '');
       el.style.setProperty('--blink-delay', `${-rand(0, 4).toFixed(2)}s`);
       el.setAttribute('role', 'button');
-      el.setAttribute('aria-label', dino.name);
+      el.setAttribute('aria-label', gold ? `Golden ${dino.name}` : dino.name);
       el.innerHTML =
         `<div class="actor-shadow"></div>` +
-        `<div class="actor-body"><div class="actor-flip">${DM.dinoSVG(dino)}</div></div>`;
+        `<div class="actor-body"><div class="actor-flip">${DM.dinoSVG(dino, { gold: !!gold })}</div>` +
+        (gold === 'glow' ? '<div class="gold-sparkles"><i></i><i></i><i></i><i></i></div>' : '') +
+        `</div>`;
       el.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         game.tap(this);
@@ -60,6 +66,14 @@
       this.body.classList.remove('hop', 'shake', 'cheer');
       void this.body.offsetWidth; // restart the CSS animation
       this.body.classList.add(name);
+    }
+
+    // A speech bubble ("WOW!") that rides along with the dino.
+    say(text) {
+      const b = document.createElement('div');
+      b.className = 'say';
+      b.textContent = text;
+      this.el.appendChild(b);
     }
 
     leave(b, size) {
@@ -146,6 +160,8 @@
      * @param {object} opts
      *   field, card, pic, label, nameEl, progress: DOM elements
      *   onWin(roundSize): called once every dino has been found
+     *   isGoldFound(id): is this golden dino already in the collection?
+     *   onGoldFound(dino): a golden dino was found for the first time
      */
     constructor(opts) {
       Object.assign(this, opts);
@@ -157,6 +173,7 @@
       this.bounds = {};
       this.location = DM.LOCATIONS[0];
       this.trees = [];
+      this.goldenChance = GOLDEN_CHANCE;
       this.loop = this.loop.bind(this);
       window.addEventListener('resize', () => this.running && this.measure());
       this.card.addEventListener('pointerdown', () => this.target && this.announce());
@@ -284,6 +301,14 @@
       this.field.appendChild(el);
     }
 
+    goldBanner(text) {
+      const el = document.createElement('div');
+      el.className = 'loc-banner gold-banner';
+      el.textContent = text;
+      el.addEventListener('animationend', () => el.remove());
+      this.field.appendChild(el);
+    }
+
     // ---- Round-start banner ----
 
     showBanner() {
@@ -300,7 +325,14 @@
       this.measure();
       this.makeTrees();
       const count = randInt(MIN_DINOS, Math.min(MAX_DINOS, DM.DINOS.length));
-      this.actors = shuffle(DM.DINOS).slice(0, count).map((d) => new Actor(d, this));
+      const picks = shuffle(DM.DINOS).slice(0, count);
+      // Now and then one dino in the round is golden. If it's already in the
+      // collection it still shows up golden, just without the glow.
+      const goldIdx = Math.random() < this.goldenChance ? Math.floor(Math.random() * count) : -1;
+      this.actors = picks.map((d, i) => {
+        if (i !== goldIdx) return new Actor(d, this);
+        return new Actor(d, this, this.isGoldFound(d.id) ? 'plain' : 'glow');
+      });
       this.placeActors();
       for (const a of this.actors) {
         a.render(this.size);
@@ -411,21 +443,24 @@
       this.target = left[Math.floor(Math.random() * left.length)];
       this.misses = 0;
       this.hintAt = performance.now() + HINT_DELAY_MS;
-      this.setCard(this.target.dino, 'Find me!');
+      this.setCard(this.target.dino, 'Find me!', this.target.gold);
       this.announce();
     }
 
     announce() {
-      DM.Sound.speak(`Find the ${this.target.dino.name}!`);
+      const t = this.target;
+      DM.Sound.speak(`Find the ${t.gold ? 'golden ' : ''}${t.dino.name}!`);
     }
 
-    setCard(dino, label) {
-      this.card.classList.remove('pop-in', 'wiggle', 'yay');
+    setCard(dino, label, gold = null) {
+      this.card.classList.remove('pop-in', 'wiggle', 'yay', 'golden', 'gold-glow');
       void this.card.offsetWidth;
       this.label.textContent = label;
       if (dino) {
-        this.pic.innerHTML = DM.dinoSVG(dino, { fit: true });
-        this.nameEl.textContent = dino.name;
+        this.pic.innerHTML = DM.dinoSVG(dino, { fit: true, gold: !!gold });
+        this.nameEl.textContent = gold ? `Golden ${dino.name}` : dino.name;
+        if (gold) this.card.classList.add('golden');
+        if (gold === 'glow') this.card.classList.add('gold-glow');
         this.card.classList.add('pop-in');
       } else {
         this.pic.innerHTML = '<div class="card-placeholder">?</div>';
@@ -453,6 +488,18 @@
         void this.card.offsetWidth;
         this.card.classList.add('yay');
         this.label.textContent = 'You found me!';
+        if (actor.gold === 'glow') {
+          // First time finding this golden dino: add it to the collection.
+          actor.say('NEW!');
+          this.onGoldFound(actor.dino);
+          this.goldBanner(`🌟 Golden ${actor.dino.name} collected!`);
+          this.later(() => DM.Sound.play('golden'), 250);
+          DM.Sound.speak(`Wow! You found a golden ${actor.dino.name}!`);
+        } else if (actor.gold === 'plain') {
+          actor.say('WOW!');
+          this.later(() => DM.Sound.play('golden'), 250);
+          DM.Sound.speak('Wow!');
+        }
       } else {
         actor.react('shake');
         DM.Sound.play('wrong');

@@ -58,6 +58,11 @@
     label: $('target-label'),
     nameEl: $('target-name'),
     progress: $('progress'),
+    isGoldFound: (id) => !!save.golden[id],
+    onGoldFound: (dino) => {
+      save.golden[dino.id] = true;
+      DM.Save.write(save);
+    },
     onWin: handleWin,
   });
 
