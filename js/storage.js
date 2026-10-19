@@ -12,7 +12,8 @@
     version: VERSION,
     gamesCompleted: 0,
     dinosFound: 0,
-    soundOn: true,
+    volume: { voice: 1, music: 1, sfx: 1 },            // All Sounds sliders, 0 to 1
+    mute: { voice: false, music: false, sfx: false },  // All Sounds speaker buttons
     dadLock: false, // full screen Dad Lock is on
     pinHash: null,  // grown-up PIN (hashed) for the Dad Lock
     golden: {},     // golden dinos collected: { dinoId: true }
@@ -22,7 +23,15 @@
     load() {
       try {
         const raw = localStorage.getItem(KEY);
-        if (raw) return Object.assign(defaults(), JSON.parse(raw));
+        if (raw) {
+          const data = Object.assign(defaults(), JSON.parse(raw));
+          // Older saves had one sound on/off switch.
+          if ('soundOn' in data) {
+            if (!data.soundOn) data.mute = { voice: true, music: true, sfx: true };
+            delete data.soundOn;
+          }
+          return data;
+        }
       } catch (e) { /* private mode or corrupt data: start fresh */ }
       return defaults();
     },

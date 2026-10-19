@@ -6,10 +6,14 @@
 
   const $ = (id) => document.getElementById(id);
   const save = DM.Save.load();
-  DM.Sound.setEnabled(save.soundOn);
 
-  // Unlock audio on the first touch anywhere (browser autoplay rules).
-  document.addEventListener('pointerdown', () => DM.Sound.unlock(), { capture: true });
+  // Menu music: a random tune, which starts on the first touch anywhere
+  // (browsers don't allow sound before that).
+  DM.Music.start();
+  document.addEventListener('pointerdown', () => {
+    DM.Sound.unlock();
+    DM.Music.refresh();
+  }, { capture: true });
 
   // ---- Logo: one bouncy, colourful span per letter ----
   const LOGO_COLORS = ['#7ed957', '#ffc23d', '#ff7aa8', '#6ec6ff', '#b18cff', '#ff7663'];
@@ -76,7 +80,7 @@
 
   function goMenu() {
     game.stop();
-    DM.Music.stop();
+    DM.Music.start();
     hideWin();
     show('screen-menu');
     renderCount(countChanged);
@@ -139,21 +143,11 @@
   click('btn-credits-close', () => showCredits(false));
   click('btn-credits-back', () => showCredits(false));
 
-  const soundBtn = $('btn-sound');
-  function renderSound() {
-    soundBtn.textContent = save.soundOn ? '🔊' : '🔇';
-    soundBtn.setAttribute('aria-pressed', String(save.soundOn));
-    soundBtn.setAttribute('aria-label', save.soundOn ? 'Sound on' : 'Sound off');
-  }
-  renderSound();
-  soundBtn.addEventListener('click', () => {
-    save.soundOn = !save.soundOn;
-    DM.Sound.setEnabled(save.soundOn);
-    DM.Save.write(save);
-    renderSound();
-    DM.Sound.play('tap');
+  // The game holds still while the All Sounds menu is open.
+  DM.SoundMenu.init(save, {
+    onOpen: () => game.pause(),
+    onClose: () => game.resume(),
   });
-
   DM.DadLock.init(save);
   DM.Collections.init(save);
 

@@ -71,7 +71,24 @@ button { font: inherit; color: inherit; }
   top: max(10px, env(safe-area-inset-top));
   right: max(14px, env(safe-area-inset-right));
 }
-.fs-btn { right: calc(max(14px, env(safe-area-inset-right)) + 68px); }
+/* "🔊 Sound" pill: same look as the round icon buttons, but wider. */
+:root { --sound-w: 132px; }
+.sound-btn {
+  width: var(--sound-w);
+  height: 56px;
+  border-radius: 999px;
+  background: var(--cream);
+  border: 4px solid var(--ink);
+  box-shadow: 0 5px 0 var(--ink);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.sound-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+.fs-btn { right: calc(max(14px, env(safe-area-inset-right)) + var(--sound-w) + 12px); }
 .fs-btn svg { width: 26px; height: 26px; fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .fs-btn[hidden] { display: none; }
 
@@ -346,7 +363,7 @@ button { font: inherit; color: inherit; }
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: max(10px, env(safe-area-inset-top)) 150px 10px max(14px, env(safe-area-inset-left));
+  padding: max(10px, env(safe-area-inset-top)) calc(var(--sound-w) + 94px) 10px max(14px, env(safe-area-inset-left));
 }
 
 .progress { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 auto; }
@@ -453,8 +470,10 @@ button { font: inherit; color: inherit; }
   .pip { width: 18px; height: 18px; border-width: 3px; }
   .progress { gap: 4px; }
   .icon-btn { width: 48px; height: 48px; font-size: 22px; }
-  .fs-btn { right: calc(max(14px, env(safe-area-inset-right)) + 56px); }
-  .game-bar { padding-right: 126px; gap: 10px; }
+  :root { --sound-w: 112px; }
+  .sound-btn { height: 48px; font-size: 19px; }
+  .fs-btn { right: calc(max(14px, env(safe-area-inset-right)) + var(--sound-w) + 10px); }
+  .game-bar { padding-right: calc(var(--sound-w) + 76px); gap: 10px; }
 }
 
 /* ---------- Dinos ---------- */
@@ -736,7 +755,58 @@ button { font: inherit; color: inherit; }
 .credits-more { margin-top: 14px; color: #5b4a6b; font-size: 0.9em; }
 .credits-more p + p { margin-top: 4px; }
 .credits-back { margin-top: 18px; font-size: clamp(24px, 5vmin, 34px); }
-body.panel-open .sound-btn, body.panel-open .fs-btn { visibility: hidden; }
+body.panel-open .sound-btn, body.panel-open .fs-btn,
+body.sound-open .sound-btn, body.sound-open .fs-btn { visibility: hidden; }
+
+/* ---------- All Sounds menu ---------- */
+
+#sound-menu { z-index: 150; } /* under the Dad Lock screen */
+.sound-card { width: min(460px, 100%); }
+.sound-card h2 { font-size: clamp(30px, 6.5vmin, 46px); color: var(--pink); line-height: 1.1; }
+.sound-rows { display: flex; flex-direction: column; gap: 14px; margin: 16px 0 22px; text-align: left; }
+.sound-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'btn label' 'btn slider';
+  align-items: center;
+  column-gap: 14px;
+  background: #fff;
+  border: 3px solid #e8dcc8;
+  border-radius: 22px;
+  padding: 10px 16px 10px 10px;
+}
+.sound-row .mute-btn { grid-area: btn; }
+.sound-row label { grid-area: label; font-weight: 700; font-size: clamp(17px, 3vmin, 21px); }
+.sound-row input { grid-area: slider; }
+.sound-row.muted label, .sound-row.muted input { opacity: 0.4; }
+
+/* Big, chunky slider that little fingers can grab. */
+.sound-row input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 34px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+}
+.sound-row input[type="range"]::-webkit-slider-runnable-track {
+  height: 14px; border-radius: 99px; background: #ffe08a; border: 3px solid var(--ink);
+}
+.sound-row input[type="range"]::-moz-range-track {
+  height: 14px; border-radius: 99px; background: #ffe08a; border: 3px solid var(--ink);
+}
+.sound-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 30px; height: 30px; margin-top: -11px;
+  border-radius: 50%; background: var(--green); border: 4px solid var(--ink);
+}
+.sound-row input[type="range"]::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%; background: var(--green); border: 4px solid var(--ink);
+}
+
+/* Game on hold while the All Sounds menu is open. */
+.field.paused, .field.paused * { animation-play-state: paused !important; }
 /* Links would leave the game, so they're switched off while Dad Lock is on. */
 body.dad-locked .credits-card a { pointer-events: none; color: inherit; text-decoration: none; }
 

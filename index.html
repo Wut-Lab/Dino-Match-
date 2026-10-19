@@ -96,7 +96,16 @@
     </section>
 
     <button id="btn-fullscreen" class="icon-btn fs-btn" aria-label="Full screen"></button>
-    <button id="btn-sound" class="icon-btn sound-btn" aria-label="Sound on" aria-pressed="true">🔊</button>
+    <button id="btn-sound" class="sound-btn" aria-haspopup="dialog"><span id="sound-icon" aria-hidden="true">🔊</span> Sound</button>
+
+    <!-- All Sounds menu: a volume slider and mute button for each kind of sound -->
+    <div id="sound-menu" class="overlay hidden top-overlay" role="dialog" aria-modal="true" aria-labelledby="sound-title">
+      <div class="pad-card sound-card">
+        <h2 id="sound-title">All Sounds</h2>
+        <div id="sound-rows" class="sound-rows"></div>
+        <button id="sound-done" class="btn btn-play">Done</button>
+      </div>
+    </div>
 
     <!-- Full screen options (grown-up choice) -->
     <div id="fs-menu" class="overlay hidden top-overlay" role="dialog" aria-modal="true" aria-labelledby="fs-title">
@@ -136,6 +145,7 @@
   <script src="js/game.js"></script>
   <script src="js/dadlock.js"></script>
   <script src="js/collections.js"></script>
+  <script src="js/soundmenu.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

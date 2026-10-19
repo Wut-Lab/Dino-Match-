@@ -1,9 +1,10 @@
 /*
  * Background music, made live in code (Web Audio, no audio files).
  *
- * Each game picks one of the TRACKS at random. A track is about a minute
- * long and loops. Music follows the sound on/off button, pauses while the
- * page is hidden, and dips quieter while the game is speaking.
+ * The menu and each game pick one of the TRACKS at random. A track is about
+ * a minute long and loops. Music follows the Background Music volume in the
+ * All Sounds menu, pauses while the page is hidden, and dips quieter while
+ * the game is speaking.
  *
  * How a track is written:
  *   bpm       speed in beats per minute
@@ -119,7 +120,7 @@
     },
   ];
 
-  const VOLUME = 0.55;  // overall music level, under the sound effects
+  const VOLUME = 0.55;  // music level at full volume, under the sound effects
   const DUCKED = 0.35;  // share of VOLUME left while the game is talking
   const LOOKAHEAD = 0.2; // seconds of music scheduled ahead of time
 
@@ -178,10 +179,11 @@
     out: null,      // this playthrough's volume knob (a GainNode)
     timer: null,
     duckId: 0,
+    ducked: false,
 
     get ctx() { return DM.Sound.ctx; },
 
-    // Start a random track. Called when a game starts.
+    // Start a random track. Called on the menu and when a game starts.
     start() {
       this.want = true;
       const track = TRACKS[Math.floor(Math.random() * TRACKS.length)];
@@ -190,15 +192,15 @@
       this.refresh();
     },
 
-    // Fade out and forget the track. Called on the menu and the win screen.
+    // Fade out and forget the track. Called on the win screen.
     stop() {
       this.want = false;
       this.halt();
     },
 
-    // Play or pause to match the sound setting and whether the page is visible.
+    // Play or pause to match the volume setting and whether the page is visible.
     refresh() {
-      const ok = this.want && this.song && DM.Sound.enabled && this.ctx && !document.hidden;
+      const ok = this.want && this.song && DM.Sound.level('music') > 0 && this.ctx && !document.hidden;
       if (ok && !this.playing) this.play();
       else if (!ok && this.playing) this.halt();
     },
@@ -207,7 +209,7 @@
       const c = this.ctx;
       this.out = c.createGain();
       this.out.gain.setValueAtTime(0.0001, c.currentTime);
-      this.out.gain.exponentialRampToValueAtTime(VOLUME, c.currentTime + 1);
+      this.out.gain.exponentialRampToValueAtTime(this.target(), c.currentTime + 1);
       this.out.connect(c.destination);
       this.playing = true;
       this.bar = 0;
@@ -233,16 +235,29 @@
     // Returns a function that undoes it.
     duck() {
       const id = ++this.duckId;
-      this.setLevel(VOLUME * DUCKED);
-      return () => { if (id === this.duckId) this.setLevel(VOLUME); };
+      this.ducked = true;
+      this.applyVolume();
+      return () => {
+        if (id !== this.duckId) return;
+        this.ducked = false;
+        this.applyVolume();
+      };
     },
 
-    setLevel(v) {
+    // How loud the music should be right now.
+    target() {
+      return Math.max(0.0001, VOLUME * DM.Sound.gain('music') * (this.ducked ? DUCKED : 1));
+    },
+
+    // Glide to the right loudness after a volume change or ducking, and
+    // start or stop if the music was turned up from, or down to, nothing.
+    applyVolume() {
+      this.refresh();
       if (!this.playing) return;
       const g = this.out.gain;
       const t = this.ctx.currentTime;
       g.cancelScheduledValues(t);
-      g.setTargetAtTime(v, t, 0.08);
+      g.setTargetAtTime(this.target(), t, 0.08);
     },
 
     // Queue every step that starts within the next LOOKAHEAD seconds.

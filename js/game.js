@@ -351,7 +351,29 @@
       this.later(() => this.nextTarget(), 600);
     }
 
+    // Freeze the round (used while the All Sounds menu is open).
+    pause() {
+      if (!this.running || this.paused) return;
+      this.paused = true;
+      this.pausedAt = performance.now();
+      cancelAnimationFrame(this.raf);
+      this.field.classList.add('paused');
+    }
+
+    resume() {
+      if (!this.paused) return;
+      this.paused = false;
+      this.field.classList.remove('paused');
+      if (!this.running) return;
+      const now = performance.now();
+      this.hintAt += now - this.pausedAt; // don't count paused time towards the hint
+      this.last = now;
+      this.raf = requestAnimationFrame(this.loop);
+    }
+
     stop() {
+      this.paused = false;
+      this.field.classList.remove('paused');
       this.running = false;
       cancelAnimationFrame(this.raf);
       this.timers.forEach(clearTimeout);
@@ -469,7 +491,7 @@
     }
 
     tap(actor) {
-      if (!this.running || actor.leaving) return;
+      if (!this.running || this.paused || actor.leaving) return;
 
       if (!this.target) {
         actor.react('hop');
@@ -502,7 +524,7 @@
         }
       } else {
         actor.react('shake');
-        DM.Sound.play('wrong');
+        DM.Sound.play('miss');
         this.card.classList.remove('pop-in', 'wiggle');
         void this.card.offsetWidth;
         this.card.classList.add('wiggle');

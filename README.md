@@ -13,11 +13,11 @@ A picture of a dinosaur shows up on the left, and 8 dinosaurs (picked at random 
   - **Volcano Valley**: now and then a fog bank rolls across, partly hiding the dinos
 - Waddling dinos, a hovering Pterodactyl, sparkles and confetti
 - The dino's name is read aloud ("Find the T-Rex!") for kids who can't read yet. Tap the picture card to hear it again
-- Built to be gentle: a wrong tap gets a little wiggle, with no penalty. After 2 misses, or 9 seconds without finding the dino, a star appears over it as a hint
+- Built to be gentle: a wrong tap gets a little wiggle and a soft "pok-pok", with no penalty. After 2 misses, or 9 seconds without finding the dino, a star appears over it as a hint
 - Works with mouse and touch, in landscape and portrait (phones, tablets, desktops)
 - Progress is saved in the browser (`localStorage`)
-- Background music made in code: 3 cheerful tunes (Dino Stomp, Fern Waltz, Lava Hop), about a minute each and looping, with one picked at random each game. It gets quieter while a dino's name is being spoken. Tunes are written as notes in `js/music.js`
-- A sound on/off toggle (covers music too), and the setting is remembered
+- Background music made in code: 3 cheerful tunes (Dino Stomp, Fern Waltz, Lava Hop), about a minute each and looping. The menu and each game pick one at random. It gets quieter while a dino's name is being spoken. Tunes are written as notes in `js/music.js`
+- A **Sound** button (top right, on the menu and in the game) opens an **All Sounds** menu with a volume slider and a mute button for Voice, Background Music and Sound Effects. The game pauses while it's open, and the settings are remembered
 - Full screen with an optional **Dad Lock**: a grown-up PIN is needed to leave full screen. Browsers always allow leaving full screen (Esc, swipes), so if that happens while locked, a lock screen covers the game until the PIN is entered. Kids can only tap "Back to full screen". Forgot the PIN? Answer a grown-up multiplication question to reset it. Not available on iPhone, where Safari doesn't support full screen for web pages
 - **Golden Dinos**: about 1 round in 3, one dino is a shiny, glowing golden version. Finding it on its turn adds it to the Golden Dinos collection. Once collected it can still turn up golden (shiny but not glowing) and says "WOW!" as it walks off. Golden art is generated from each dino's normal art (`js/dinos.js`), and the chance is `GOLDEN_CHANCE` in `js/game.js`
 - A Collections screen on the main menu: Golden Dinos, plus two placeholder tabs (fill them in via `js/collections.js`)
@@ -55,6 +55,7 @@ js/music.js       Background music tracks, written as notes
 js/game.js        Core gameplay loop: wandering, tapping, hints
 js/dadlock.js     Full screen button, Dad Lock PIN keypad and lock screen
 js/collections.js Collections pop-up and its tabs
+js/soundmenu.js   All Sounds menu: volume sliders and mute buttons
 js/main.js        App shell: menu, screen switching, win screen
 assets/           Favicon
 art/source/       Original Openclipart SVGs (CC0)
