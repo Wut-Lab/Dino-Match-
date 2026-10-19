@@ -462,7 +462,7 @@
       if (!this.running || this.field.querySelector('.stuck-stamp')) return null;
       const anchors = [
         ...this.trees.map((t) => t.el),
-        ...this.scene.querySelectorAll('.sun, .hill, .far-pine, .volcano, .rock'),
+        ...this.scene.querySelectorAll('.sun, .hill, .far-pine, .volcano, .rock, .boulder'),
       ];
       return DM.StuckStamp.stick(anchors, {
         layer: this.field,

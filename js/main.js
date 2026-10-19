@@ -39,7 +39,7 @@
     if (!$('screen-menu').classList.contains('active') || layer.querySelector('.stuck-stamp')) return null;
     const anchors = [
       ...layer.querySelectorAll('.menu-hut .hut-body'),
-      ...$('menu-scene').querySelectorAll('.sun, .hill, .far-pine, .volcano, .rock'),
+      ...$('menu-scene').querySelectorAll('.sun, .hill, .far-pine, .volcano, .rock, .boulder'),
     ];
     return DM.StuckStamp.stick(anchors, {
       layer,

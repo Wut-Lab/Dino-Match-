@@ -164,6 +164,12 @@ button { font: inherit; color: inherit; }
   background: linear-gradient(#8fdc72, #6fcf5c 60%, #5fc24f);
   border-top: 4px solid #7bd05f;
 }
+.scene .boulder {
+  position: absolute;
+  width: calc(clamp(56px, 12vmin, 104px) * var(--bs, 1));
+  transform: translate(-50%, -100%);
+}
+.scene .boulder svg { display: block; width: 100%; }
 .scene .flower {
   position: absolute;
   width: 14px;

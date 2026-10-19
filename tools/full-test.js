@@ -195,6 +195,7 @@ async function playRound(p) {
       if (fog) { shots.fog = 1; await p.waitForTimeout(2500); await p.screenshot({ path: `${OUT}/05-loc-volcano-fog.png` }); }
     }
     if (loc !== 'volcano') check(`${loc}: no fog`, (await p.locator('#field .fog').count()) === 0);
+    if (!shots['b-' + loc]) { shots['b-' + loc] = 1; const nb = await p.locator('#field-scene .boulder').count(); check(`${loc}: has a few boulders`, nb >= 3, `${nb}`); }
     await p.click('#btn-home');
   }
   check('Locations: all 3 appear', ['meadow', 'forest', 'volcano'].every((l) => seen.includes(l)), seen.join(' '));
