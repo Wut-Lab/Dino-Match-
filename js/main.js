@@ -22,11 +22,14 @@
     .map((ch, i) => `<span style="--i:${i};--c:${LOGO_COLORS[i % LOGO_COLORS.length]}">${ch}</span>`)
     .join('');
 
-  // ---- Scenes ----
-  DM.buildScene($('menu-scene'));
-
-  // ---- Dinos hopping around behind the menu (a new random herd each time) ----
-  DM.MenuDinos.start($('menu-dinos'));
+  // ---- Menu background: a random location, its huts and a random herd of
+  // hopping dinos, all picked afresh every time the menu opens ----
+  function buildMenu() {
+    const loc = DM.LOCATIONS[Math.floor(Math.random() * DM.LOCATIONS.length)];
+    DM.buildScene($('menu-scene'), loc.id);
+    DM.MenuDinos.start($('menu-dinos'), loc);
+  }
+  buildMenu();
 
   // ---- Screens ----
   function show(id) {
@@ -83,7 +86,7 @@
     DM.Music.start();
     hideWin();
     show('screen-menu');
-    DM.MenuDinos.start($('menu-dinos'));
+    buildMenu();
     renderCount(countChanged);
     countChanged = false;
   }

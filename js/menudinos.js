@@ -1,7 +1,7 @@
 /*
- * Main menu background: a few random dinos casually hopping around the meadow
- * behind the menu (fliers glide about in the sky instead). A fresh random herd
- * is picked every time the menu opens.
+ * Main menu background: a random location with a few dino huts, and a few
+ * random dinos casually hopping around (fliers glide about in the sky
+ * instead). All of it is picked afresh every time the menu opens.
  *
  * Positions are in % of the menu screen, so it all scales with the window.
  */
@@ -9,8 +9,8 @@
   'use strict';
 
   const COUNT = 6;
-  const HORIZON = 34;                 // % from the top where the grass starts (meadow scene)
-  const GROUND = [HORIZON + 6, 90];   // where hoppers' feet can be
+  const HUTS = 4;                     // two each side, clear of the menu buttons
+  let GROUND = [40, 90];              // where hoppers' feet can be (set from the location's horizon)
   const SKY = [10, 30];               // where fliers can be
   const X = [6, 94];
   const HOP_MS = 450;                 // matches the menu-hop animation
@@ -22,8 +22,9 @@
   let herd = [];
 
   // Further away (higher up) means smaller and behind the nearer dinos.
+  const depthAt = (y) => 0.6 + 0.4 * (y - GROUND[0]) / (GROUND[1] - GROUND[0]);
   function place(m) {
-    const depth = m.dino.flies ? 0.8 : 0.6 + 0.4 * (m.y - GROUND[0]) / (GROUND[1] - GROUND[0]);
+    const depth = m.dino.flies ? 0.8 : depthAt(m.y);
     m.el.style.left = `${m.x}%`;
     m.el.style.top = `${m.y}%`;
     m.el.style.setProperty('--depth', depth.toFixed(3));
@@ -64,9 +65,36 @@
     m.timer = setTimeout(() => glide(m), rand(4000, 7000));
   }
 
-  function start(container) {
+  // Huts go at the sides (the buttons fill the middle): on each side one
+  // further back and one nearer, each design used at least once.
+  function buildHuts(locationId) {
+    const designs = DM.hutSVGs(locationId);
+    const kinds = Array.from({ length: HUTS }, (_, i) => designs[i % designs.length]).sort(() => Math.random() - 0.5);
+    const mid = (GROUND[0] + GROUND[1]) / 2;
+    const spots = [];
+    for (const [x0, x1] of [[11, 27], [73, 89]]) {
+      const far = rand(x0, x1);
+      const near = far < (x0 + x1) / 2 ? rand(far + 7, x1) : rand(x0, far - 7); // don't stack them
+      spots.push([far, rand(GROUND[0] + 2, mid - 6)], [near, rand(mid + 8, GROUND[1] - 2)]);
+    }
+    spots.forEach(([x, y], i) => {
+      const el = document.createElement('div');
+      el.className = 'menu-hut';
+      el.innerHTML = kinds[i];
+      el.style.left = `${x}%`;
+      el.style.top = `${y}%`;
+      el.style.setProperty('--depth', depthAt(y).toFixed(3));
+      el.style.zIndex = Math.round(y);
+      if (Math.random() < 0.5) el.classList.add('flip');
+      box.appendChild(el);
+    });
+  }
+
+  function start(container, location) {
     stop();
     box = container;
+    GROUND = [location.horizon * 100 + 6, 90];
+    buildHuts(location.id);
     const picks = DM.DINOS.slice().sort(() => Math.random() - 0.5).slice(0, COUNT);
     herd = picks.map((dino, i) => {
       const el = document.createElement('div');
