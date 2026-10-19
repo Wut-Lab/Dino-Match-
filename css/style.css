@@ -566,6 +566,26 @@ button { font: inherit; color: inherit; }
 .gold-sparkles i:nth-child(3) { left: 14%; bottom: 22%; animation-delay: -0.8s; }
 .gold-sparkles i:nth-child(4) { right: 10%; bottom: 30%; animation-delay: -1.2s; }
 
+/* Dino-Stars floating across the sky (see FlyingStar in game.js) */
+.dstar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 5500; /* over the dinos and fog, under the banners */
+  aspect-ratio: 1;
+  cursor: pointer;
+  will-change: transform;
+  touch-action: none;
+}
+.dstar.caught { cursor: default; }
+.dstar-body, .dstar-spin { width: 100%; height: 100%; }
+.star-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.star-glow .dstar-spin { animation: star-pulse 1.4s ease-in-out infinite alternate; }
+.dstar.caught .dstar-spin { animation: star-spin 0.9s ease-in-out forwards; }
+/* Stars fly high, so their bubble goes underneath (clear of the banner) */
+.dstar .say { bottom: auto; top: 100%; margin-top: 10px; }
+.dstar .say::after { top: auto; bottom: 100%; border-top-color: transparent; border-bottom-color: var(--ink); }
+
 /* Speech bubble ("WOW!") that rides along with a dino */
 .say {
   position: absolute;
@@ -711,6 +731,8 @@ button { font: inherit; color: inherit; }
 .gold-pic { aspect-ratio: 1; }
 .gold-pic.mystery .dino-svg { filter: brightness(0) opacity(0.18); }
 .gold-pic .eye, .gold-pic .dino-pose { animation: none; }
+.gold-pic.mystery .star-svg { filter: brightness(0) opacity(0.18); }
+.star-card.found { background: radial-gradient(circle at 50% 40%, #f3f8ff, #d4e6ff); border-color: #8fb6f0; }
 
 #credits { z-index: 60; }
 .credits-card {
@@ -907,6 +929,11 @@ body.dad-locked .credits-card a { pointer-events: none; color: inherit; text-dec
   from { filter: drop-shadow(0 0 4px rgba(255, 214, 60, 0.9)); }
   to { filter: drop-shadow(0 0 14px rgba(255, 200, 30, 1)) drop-shadow(0 0 4px #fff6c0); }
 }
+@keyframes star-pulse {
+  from { filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 6px var(--star)); }
+  to { filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 18px var(--star)); }
+}
+@keyframes star-spin { 0% { transform: scale(1) rotate(0); } 40% { transform: scale(1.35) rotate(200deg); } 100% { transform: scale(1.15) rotate(360deg); } }
 @keyframes twinkle { 0%, 100% { transform: scale(0.3) rotate(0deg); opacity: 0; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
 @keyframes say-pop { from { transform: translateX(-50%) scale(0.2); } to { transform: translateX(-50%) scale(1); } }
 @keyframes banner {

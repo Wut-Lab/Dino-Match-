@@ -17,6 +17,7 @@
     dadLock: false, // full screen Dad Lock is on
     pinHash: null,  // grown-up PIN (hashed) for the Dad Lock
     golden: {},     // golden dinos collected: { dinoId: true }
+    stars: {},      // Dino-Stars collected: { starId: true }
   });
 
   DM.Save = {

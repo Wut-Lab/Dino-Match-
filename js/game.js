@@ -24,6 +24,17 @@
   const CHEER_TIME = 0.65; // seconds the found dino celebrates before leaving
   const EXIT_SPEED = 2.8; // dino-widths per second when walking off screen
   const GOLDEN_CHANCE = 0.33; // chance a round has one golden dino in it
+  const STAR_CHANCE = 0.33; // chance a Dino-Star floats across the sky in a round
+  const STAR_DELAY = [4, 14]; // seconds into the round before it shows up
+  const STAR_CROSS_TIME = 11; // seconds to float from one side to the other
+
+  // A speech bubble ("WOW!") that rides along with a dino or star.
+  function say(el, text) {
+    const b = document.createElement('div');
+    b.className = 'say';
+    b.textContent = text;
+    el.appendChild(b);
+  }
 
   class Actor {
     // gold: null (normal), 'glow' (golden, not collected yet) or 'plain'
@@ -66,14 +77,6 @@
       this.body.classList.remove('hop', 'shake', 'cheer');
       void this.body.offsetWidth; // restart the CSS animation
       this.body.classList.add(name);
-    }
-
-    // A speech bubble ("WOW!") that rides along with the dino.
-    say(text) {
-      const b = document.createElement('div');
-      b.className = 'say';
-      b.textContent = text;
-      this.el.appendChild(b);
     }
 
     leave(b, size) {
@@ -155,6 +158,73 @@
     }
   }
 
+  // A Dino-Star bobbing across the sky on a wavy path. glow: true if it isn't
+  // in the collection yet. Once tapped it spins, then zooms up and away.
+  class FlyingStar {
+    constructor(star, game, glow) {
+      this.star = star;
+      this.game = game;
+      this.glow = glow;
+      this.caught = false;
+      this.gone = false;
+      this.t = 0;
+      const b = game.bounds;
+      this.s = game.size.w * 0.75;
+      this.dir = Math.random() < 0.5 ? 1 : -1;
+      this.x = this.dir > 0 ? -this.s : b.W + this.s;
+      this.vx = (this.dir * (b.W + this.s * 2)) / STAR_CROSS_TIME;
+      // A random height in the sky, wobbling up and down around it.
+      const top = this.s * 0.6;
+      this.baseY = rand(top, Math.max(top, b.H * game.location.horizon - this.s * 0.1));
+      this.amp = this.s * 0.28;
+      this.period = rand(2.4, 3.4);
+      this.phase = rand(0, Math.PI * 2);
+      this.y = this.baseY;
+
+      const el = document.createElement('div');
+      el.className = 'dstar' + (glow ? ' star-glow' : '');
+      el.style.width = `${this.s}px`;
+      el.style.setProperty('--star', star.color);
+      el.style.setProperty('--blink-delay', `${-rand(0, 4).toFixed(2)}s`);
+      el.setAttribute('role', 'button');
+      el.setAttribute('aria-label', star.fullName);
+      el.innerHTML = `<div class="dstar-body"><div class="dstar-spin">${DM.starSVG(star)}</div></div>` +
+        (glow ? '<div class="gold-sparkles"><i></i><i></i><i></i><i></i></div>' : '');
+      el.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        game.tapStar(this);
+      });
+      this.el = el;
+      this.body = el.querySelector('.dstar-body');
+    }
+
+    catch() {
+      this.caught = true;
+      this.caughtT = 0;
+      this.el.classList.add('caught');
+    }
+
+    update(dt) {
+      this.t += dt;
+      if (this.caught) {
+        // Spin in place for a moment, then zoom up and off the top.
+        this.caughtT += dt;
+        if (this.caughtT > 0.9) this.y -= this.s * 6 * (this.caughtT - 0.9) * dt * 4;
+        if (this.y < -this.s * 2) this.gone = true;
+        return;
+      }
+      this.x += this.vx * dt;
+      this.y = Math.max(this.s * 0.5, this.baseY + this.amp * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period));
+      const W = this.game.bounds.W;
+      if (this.x < -this.s * 1.5 || this.x > W + this.s * 1.5) this.gone = true;
+    }
+
+    render() {
+      this.el.style.transform = `translate3d(${(this.x - this.s / 2).toFixed(1)}px, ${(this.y - this.s / 2).toFixed(1)}px, 0)`;
+      if (!this.caught) this.body.style.transform = `rotate(${(12 * Math.sin(this.phase + (this.t * Math.PI * 2) / this.period * 0.7)).toFixed(1)}deg)`;
+    }
+  }
+
   class Game {
     /**
      * @param {object} opts
@@ -162,6 +232,7 @@
      *   onWin(roundSize): called once every dino has been found
      *   isGoldFound(id): is this golden dino already in the collection?
      *   onGoldFound(dino): a golden dino was found for the first time
+     *   isStarFound(id), onStarFound(star): the same for Dino-Stars
      */
     constructor(opts) {
       Object.assign(this, opts);
@@ -174,6 +245,8 @@
       this.location = DM.LOCATIONS[0];
       this.trees = [];
       this.goldenChance = GOLDEN_CHANCE;
+      this.starChance = STAR_CHANCE;
+      this.star = null;
       this.loop = this.loop.bind(this);
       window.addEventListener('resize', () => this.running && this.measure());
       this.card.addEventListener('pointerdown', () => this.target && this.announce());
@@ -349,6 +422,38 @@
       this.showBanner();
       this.scheduleFog(true);
       this.later(() => this.nextTarget(), 600);
+      if (Math.random() < this.starChance) this.later(() => this.launchStar(), rand(STAR_DELAY[0], STAR_DELAY[1]) * 1000);
+    }
+
+    // ---- Dino-Stars ----
+
+    launchStar() {
+      if (!this.running || this.star) return;
+      const star = DM.STARS[Math.floor(Math.random() * DM.STARS.length)];
+      this.star = new FlyingStar(star, this, !this.isStarFound(star.id));
+      this.star.render();
+      this.field.appendChild(this.star.el);
+    }
+
+    tapStar(fs) {
+      if (!this.running || this.paused || fs.caught) return;
+      fs.catch();
+      this.burst(fs.x, fs.y);
+      if (fs.glow) this.onStarFound(fs.star);
+      this.treasure(fs.el, fs.glow, fs.star.fullName);
+    }
+
+    // Shared "you found something special" moment for golden dinos and
+    // Dino-Stars: NEW! the first time (plus a banner), WOW! after that.
+    treasure(el, isNew, name) {
+      say(el, isNew ? 'NEW!' : 'WOW!');
+      this.later(() => DM.Sound.play('golden'), 250);
+      if (isNew) {
+        this.goldBanner(`🌟 ${name} collected!`);
+        DM.Sound.speak(`Wow! You found ${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}!`);
+      } else {
+        DM.Sound.speak('Wow!');
+      }
     }
 
     // Freeze the round (used while the All Sounds menu is open).
@@ -381,7 +486,8 @@
       this.actors.forEach((a) => a.el.remove());
       this.actors = [];
       this.target = null;
-      this.field.querySelectorAll('.prop, .fog, .loc-banner').forEach((el) => el.remove());
+      this.star = null;
+      this.field.querySelectorAll('.prop, .fog, .loc-banner, .dstar').forEach((el) => el.remove());
       this.trees = [];
     }
 
@@ -418,6 +524,11 @@
       for (const a of this.actors) a.update(dt, this.bounds, this.size, this.actors);
       this.separate();
       for (const a of this.actors) a.render(this.size);
+      if (this.star) {
+        this.star.update(dt);
+        this.star.render();
+        if (this.star.gone) { this.star.el.remove(); this.star = null; }
+      }
 
       const gone = this.actors.filter((a) => a.gone);
       if (gone.length) {
@@ -503,24 +614,17 @@
         this.target = null;
         this.found++;
         actor.leave(this.bounds, this.size);
-        this.burst(actor);
+        this.burst(actor.x, actor.y - this.size.h * 0.6);
         this.renderProgress();
         DM.Sound.play('correct');
         this.card.classList.remove('pop-in', 'wiggle');
         void this.card.offsetWidth;
         this.card.classList.add('yay');
         this.label.textContent = 'You found me!';
-        if (actor.gold === 'glow') {
+        if (actor.gold) {
           // First time finding this golden dino: add it to the collection.
-          actor.say('NEW!');
-          this.onGoldFound(actor.dino);
-          this.goldBanner(`🌟 Golden ${actor.dino.name} collected!`);
-          this.later(() => DM.Sound.play('golden'), 250);
-          DM.Sound.speak(`Wow! You found a golden ${actor.dino.name}!`);
-        } else if (actor.gold === 'plain') {
-          actor.say('WOW!');
-          this.later(() => DM.Sound.play('golden'), 250);
-          DM.Sound.speak('Wow!');
+          if (actor.gold === 'glow') this.onGoldFound(actor.dino);
+          this.treasure(actor.el, actor.gold === 'glow', `Golden ${actor.dino.name}`);
         }
       } else {
         actor.react('shake');
@@ -532,11 +636,11 @@
       }
     }
 
-    burst(actor) {
+    burst(x, y) {
       const el = document.createElement('div');
       el.className = 'burst';
-      el.style.left = `${actor.x}px`;
-      el.style.top = `${actor.y - this.size.h * 0.6}px`;
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
       const n = 10;
       for (let i = 0; i < n; i++) {
         const ang = (i / n) * Math.PI * 2;

@@ -67,6 +67,11 @@
       save.golden[dino.id] = true;
       DM.Save.write(save);
     },
+    isStarFound: (id) => !!save.stars[id],
+    onStarFound: (star) => {
+      save.stars[star.id] = true;
+      DM.Save.write(save);
+    },
     onWin: handleWin,
   });
 

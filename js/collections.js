@@ -2,7 +2,7 @@
  * Collections screen: a pop-up with one tab per collection.
  *
  * Each tab has a title and a render(save) that returns its contents.
- * Collections 2 and 3 are still placeholders.
+ * Collection 3 is still a placeholder.
  */
 (function (DM) {
   'use strict';
@@ -22,9 +22,22 @@
       `<div class="gold-grid">${cards}</div></div>`;
   }
 
+  // Dino-Stars: 13 coloured stars that float across the sky now and then (see
+  // STAR_CHANCE in game.js). Unfound ones show as silhouettes.
+  function renderStars(save) {
+    const found = DM.STARS.filter((s) => save.stars[s.id]).length;
+    const cards = DM.STARS.map((s) => save.stars[s.id]
+      ? `<div class="gold-card star-card found"><div class="gold-pic">${DM.starSVG(s)}</div><span>${s.name}</span></div>`
+      : `<div class="gold-card"><div class="gold-pic mystery">${DM.starSVG(s)}</div><span>?</span></div>`).join('');
+    return `<div class="gold-coll">` +
+      `<p class="gold-count">🌟 ${found} of ${DM.STARS.length} found</p>` +
+      (found ? '' : '<p class="gold-tip">Look up! A Dino-Star sometimes floats across the sky. Tap it to catch it.</p>') +
+      `<div class="gold-grid">${cards}</div></div>`;
+  }
+
   const COLLECTIONS = [
     { id: 'golden', title: 'Golden Dinos', render: renderGolden },
-    { id: 'c2', title: 'Collection 2', render: () => '<p class="coll-empty">Coming soon!</p>' },
+    { id: 'stars', title: 'Dino-Stars', render: renderStars },
     { id: 'c3', title: 'Collection 3', render: () => '<p class="coll-empty">Coming soon!</p>' },
   ];
 

@@ -20,7 +20,8 @@ A picture of a dinosaur shows up on the left, and 8 dinosaurs (picked at random 
 - A **Sound** button (top right, on the menu and in the game) opens an **All Sounds** menu with a volume slider and a mute button for Voice, Background Music and Sound Effects. The game pauses while it's open, and the settings are remembered
 - Full screen with an optional **Dad Lock**: a grown-up PIN is needed to leave full screen. Browsers always allow leaving full screen (Esc, swipes), so if that happens while locked, a lock screen covers the game until the PIN is entered. Kids can only tap "Back to full screen". Forgot the PIN? Answer a grown-up multiplication question to reset it. Not available on iPhone, where Safari doesn't support full screen for web pages
 - **Golden Dinos**: about 1 round in 3, one dino is a shiny, glowing golden version. Finding it on its turn adds it to the Golden Dinos collection. Once collected it can still turn up golden (shiny but not glowing) and says "WOW!" as it walks off. Golden art is generated from each dino's normal art (`js/dinos.js`), and the chance is `GOLDEN_CHANCE` in `js/game.js`
-- A Collections screen on the main menu: Golden Dinos, plus two placeholder tabs (fill them in via `js/collections.js`)
+- **Dino-Stars**: about 1 round in 3, a star with a T-Rex face floats across the sky on a wavy path. There are 13, each a different colour (one is a rainbow). Tap it to catch it: the first time it glows and joins the Dino-Stars collection; after that it can still float by (no glow) and says "WOW!" when caught. The stars are drawn in `js/stars.js`, and the chance is `STAR_CHANCE` in `js/game.js`
+- A Collections screen on the main menu: Golden Dinos, Dino-Stars, plus one placeholder tab (fill it in via `js/collections.js`)
 - A Credits screen on the main menu naming each dino's artist (credits live next to each dino in `js/dinos.js`)
 - No build step to play, no dependencies, no audio files
 
@@ -48,6 +49,7 @@ index.html        Screens: main menu, game, win overlay
 css/style.css     All styling and animations
 js/dinos.js       Dino roster: names and how each drawing is framed
 js/dino-art.js    Generated dino drawings (don't edit by hand)
+js/stars.js       Dino-Stars: the 13 colours and how a star is drawn
 js/scenes.js      Locations: Sunny Meadow, Pine Forest, Volcano Valley
 js/storage.js     Save data (games won, dinos found, settings)
 js/sound.js       Synth sound effects and spoken prompts
